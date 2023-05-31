@@ -2,7 +2,6 @@ package com.brianwehrle.chess.models.pieces;
 
 import com.brianwehrle.chess.models.Color;
 import com.brianwehrle.chess.models.Pair;
-import com.brianwehrle.chess.models.PieceType;
 
 import java.util.ArrayList;
 import java.util.Arrays;

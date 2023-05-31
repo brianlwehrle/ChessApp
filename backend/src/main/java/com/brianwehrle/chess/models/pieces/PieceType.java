@@ -1,4 +1,4 @@
-package com.brianwehrle.chess.models;
+package com.brianwehrle.chess.models.pieces;
 
 public enum PieceType {
     PAWN,
