@@ -4,6 +4,7 @@ import com.brianwehrle.chess.models.pieces.Piece;
 import com.brianwehrle.chess.models.pieces.PieceType;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Scanner;
 
 public class Game {
@@ -33,12 +34,13 @@ public class Game {
             System.out.println(board);
             System.out.println(board.toString(threatMap));
 
-            ArrayList<Move> possibleMoves = getPossibleMoves(activePlayer, false);
+            ArrayList<Move> possibleMoves = getPossibleMoves(activePlayer, null);
             removeIllegalMoves(possibleMoves);
 
             // Game over!
             if (possibleMoves.isEmpty()) {
-                System.out.println(activePlayer.getColor() + " loses!");
+                if (isCheck(activePlayer.getColor(), threatMap)) System.out.println(activePlayer.getColor() + " loses!");
+                else System.out.println("Stalemate!");
                 break;
             }
 
@@ -54,45 +56,31 @@ public class Game {
             prevMoves.add(possibleMoves.get(Integer.valueOf(nextMove) - 1));
 
             threatMap.clear(); // get rid of old threat map
-            getPossibleMoves(activePlayer, true); // has only the effect of creating a new threat map.
+            getPossibleMoves(activePlayer, threatMap); // has only the effect of creating a new threat map.
 
             activePlayer = (activePlayer == whitePlayer ? blackPlayer : whitePlayer);
         }
     }
 
-    private void removeIllegalMoves(ArrayList<Move> possibleMoves) {
-        // king cannot go into check
-        possibleMoves.removeIf(move -> move.start().getPiece().getType() == PieceType.KING && isUnderAttack(move.end()));
-
-        // simulate each move and see if my king would be in check
-        for (Move move : possibleMoves) {
-            Chessboard tempBoard = board;
-            ArrayList<Square> tempThreatMap = threatMap;
-
-            tempBoard.makeMove(move);
-
-        }
-    }
-
-    private ArrayList<Move> getPossibleMoves(Player activePlayer, boolean newThreatMap) {
+    private ArrayList<Move> getPossibleMoves(Player activePlayer, ArrayList<Square> threatMap) {
         ArrayList<Move> moves = new ArrayList<>();
         ArrayList<Piece> curPieces =  (activePlayer.getColor() == Color.WHITE) ? board.getWhitePieces() : board.getBlackPieces();
 
         for (Piece piece : curPieces) {
-            moves.addAll(getPossiblePieceMoves(piece, newThreatMap));
+            moves.addAll(getEachPieceMoves(piece, threatMap));
         }
 
         return moves;
     }
 
-    private ArrayList<Move> getPossiblePieceMoves(Piece piece, boolean newThreatMap) {
+    private ArrayList<Move> getEachPieceMoves(Piece piece, ArrayList<Square> threatMap) {
         ArrayList<Move> moves = new ArrayList<>();
 
         switch (piece.getType()) {
             case KNIGHT, KING -> {
                 Square start = piece.getCurSquare();
 
-                for (Pair direction : piece.getDirections()) {
+                for (Direction direction : piece.getDirections()) {
                     Square nextSquare = board.getSquareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
 
                     if (nextSquare != null) { // is in bounds
@@ -104,7 +92,7 @@ public class Game {
                             moves.add(new Move(start, nextSquare));
                         }
 
-                        if (newThreatMap) threatMap.add(nextSquare);
+                        if (threatMap != null) threatMap.add(nextSquare);
                     }
                 }
             }
@@ -130,7 +118,7 @@ public class Game {
                 for (int dx = -1; dx <= 1; dx += 2) { // just checks both forward diagonals
                     nextSquare = board.getSquareAt(start.getRow() + dy, start.getCol() + dx);
                     if (nextSquare != null) {
-                        if (newThreatMap) threatMap.add(nextSquare);
+                        if (threatMap != null) threatMap.add(nextSquare);
                         if (nextSquare.getPiece() != null) {
                             moves.add(new Move(start, nextSquare));
                         }
@@ -142,11 +130,11 @@ public class Game {
                 Square start = piece.getCurSquare();
 
                 // for each direction build a path of moves until you hit another piece
-                for (Pair direction : piece.getDirections()) {
+                for (Direction direction : piece.getDirections()) {
                     Square nextSquare = board.getSquareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
 
                     for (int scalar = 2; nextSquare != null; scalar++) {
-                        if (newThreatMap) threatMap.add(nextSquare);
+                        if (threatMap != null) threatMap.add(nextSquare);
 
                         if (nextSquare.getPiece() == null) {
                             moves.add(new Move(start, nextSquare));
@@ -166,7 +154,35 @@ public class Game {
         return moves;
     }
 
-    private boolean isUnderAttack(Square square) {
+    private void removeIllegalMoves(ArrayList<Move> possibleMoves) {
+        // king cannot move into check
+        possibleMoves.removeIf(move -> move.start().getPiece().getType() == PieceType.KING && isUnderAttack(move.end(), threatMap));
+
+        // cannot move if my king would be in check
+        // simulate each move and see if my king would be in check
+        for (Iterator<Move> iterator = possibleMoves.iterator(); iterator.hasNext(); ) {
+            Move move = iterator.next();
+
+            board.makeMove(move);
+            ArrayList<Square> tempThreatMap = new ArrayList<>();
+            Player otherPlayer = (activePlayer == whitePlayer ? blackPlayer : whitePlayer);
+            getPossibleMoves(otherPlayer, tempThreatMap); // has only the effect of creating a new threat map.
+
+            if (isCheck(activePlayer.getColor(), tempThreatMap)) {
+               iterator.remove();
+            }
+
+            board.undoMove(move);
+        }
+    }
+
+    private boolean isUnderAttack(Square square, ArrayList<Square> threatMap) {
         return threatMap.contains(square);
+    }
+
+    private boolean isCheck(Color color, ArrayList<Square> tempThreatMap) {
+        assert(board.getKing(color).getType() == PieceType.KING);
+
+        return isUnderAttack(board.getKing(color).getCurSquare(), tempThreatMap);
     }
 }

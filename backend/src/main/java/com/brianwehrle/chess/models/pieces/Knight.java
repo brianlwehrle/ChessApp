@@ -1,7 +1,7 @@
 package com.brianwehrle.chess.models.pieces;
 
 import com.brianwehrle.chess.models.Color;
-import com.brianwehrle.chess.models.Pair;
+import com.brianwehrle.chess.models.Direction;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,16 +13,16 @@ public class Knight extends Piece {
     }
 
     @Override
-    public ArrayList<Pair> getDirections() {
+    public ArrayList<Direction> getDirections() {
         return new ArrayList<>(Arrays.asList(
-                new Pair(2, 1),
-                new Pair(2, -1),
-                new Pair(-2, 1),
-                new Pair (-2, -1),
-                new Pair(1, 2),
-                new Pair(1, -2),
-                new Pair (-1, 2),
-                new Pair(-1, -2)
+                new Direction(2, 1),
+                new Direction(2, -1),
+                new Direction(-2, 1),
+                new Direction(-2, -1),
+                new Direction(1, 2),
+                new Direction(1, -2),
+                new Direction(-1, 2),
+                new Direction(-1, -2)
         ));
     }
 }

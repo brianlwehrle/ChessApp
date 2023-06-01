@@ -1,7 +1,7 @@
 package com.brianwehrle.chess.models.pieces;
 
 import com.brianwehrle.chess.models.Color;
-import com.brianwehrle.chess.models.Pair;
+import com.brianwehrle.chess.models.Direction;
 import com.brianwehrle.chess.models.Square;
 
 import java.util.ArrayList;
@@ -12,11 +12,21 @@ public abstract class Piece{
     protected final Color color;
     protected Square curSquare;
     protected boolean hasMoved;
+    private boolean movedLastTurn; // only used for undoing moves
 
     public Piece(Color color) {
         this.curSquare = null;
         this.color = color;
         hasMoved = false;
+        movedLastTurn = false;
+    }
+
+    public void setMovedLastTurn(boolean movedLastTurn) {
+        this.movedLastTurn = movedLastTurn;
+    }
+
+    public boolean movedLastTurn() {
+        return movedLastTurn;
     }
 
     public boolean hasMoved() {
@@ -43,7 +53,7 @@ public abstract class Piece{
         this.curSquare = curSquare;
     }
 
-    public abstract ArrayList<Pair> getDirections();
+    public abstract ArrayList<Direction> getDirections();
 
     public String toString(int code) {
         String res = "";
