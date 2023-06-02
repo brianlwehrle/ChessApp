@@ -2,6 +2,8 @@ package com.brianwehrle.chess.models;
 
 import com.brianwehrle.chess.models.pieces.Piece;
 
+import java.util.Optional;
+
 public class Move {
 
     public enum MoveType {
@@ -13,15 +15,14 @@ public class Move {
 
     private final Square start, end;
     private final MoveType type;
-    private Piece movingPiece;
-    //private Optional<Piece> capturedPiece;
-    private Piece capturedPiece;
+    private final Piece movingPiece;
+    private final Optional<Piece> capturedPiece;
 
     public Move (MoveType type, Square start, Square end) {
         this.start = start;
         this.end = end;
         this.type = type;
-        movingPiece = start.getPiece();
+        movingPiece = start.getPiece().get();
         capturedPiece = end.getPiece(); // could be null
     }
 
@@ -30,8 +31,8 @@ public class Move {
         this.start = start;
         this.end = end;
         this.type = type;
-        movingPiece = start.getPiece();
-        this.capturedPiece = capturedPiece; // not null
+        movingPiece = start.getPiece().get();
+        this.capturedPiece = Optional.ofNullable(capturedPiece); // not null
     }
 
     public String toString() {
@@ -42,17 +43,17 @@ public class Move {
 
         if (movingPiece.getType() == Piece.PieceType.PAWN) {
             if (type == MoveType.EN_PASSANT) {
-                return "" + startCol + "x" + endCol + endRow;
+                return startCol + "x" + endCol + endRow;
             }
-            if (end.getPiece() != null) { // capture
-                return "" + startCol + "x" + endCol + endRow;
+            if (end.getPiece().isPresent()) { // capture
+                return startCol + "x" + endCol + endRow;
             } else { // move
-                return "" + startCol + endRow;
+                return startCol + endRow;
             }
         }
 
         // capture
-        if (end.getPiece() != null) {
+        if (end.getPiece().isPresent()) {
             return start.toString(0) + "x" + endCol + endRow;
         }
 
@@ -83,7 +84,7 @@ public class Move {
 
     public Piece getMovingPiece() { return movingPiece; }
 
-    public Piece getCapturedPiece() {
+    public Optional<Piece> getCapturedPiece() {
         return capturedPiece;
     }
 }

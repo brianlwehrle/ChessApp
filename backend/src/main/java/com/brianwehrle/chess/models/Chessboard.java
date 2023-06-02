@@ -2,23 +2,22 @@ package com.brianwehrle.chess.models;
 
 import com.brianwehrle.chess.models.pieces.*;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Optional;
 
 public class Chessboard {
     private static int NUM_ROWS, NUM_COLS;
-    private Square[] board; // rows and cols grow down and right
+    private final Square[] board; // rows and cols grow down and right
                             // represents a 2d array
     private final ArrayList<Piece> pieces;
-    private Piece lastCapturedPiece;
+    private Optional<Piece> lastCapturedPiece;
 
     public Chessboard() {
         NUM_COLS = NUM_ROWS = 8;
 
         board = new Square[NUM_COLS * NUM_ROWS];
         pieces = new ArrayList<>();
-        lastCapturedPiece = null;
+        lastCapturedPiece = Optional.empty();
 
         for (int row = 0; row < NUM_ROWS; row++) {
             for (int col = 0; col < NUM_COLS; col++) {
@@ -31,40 +30,32 @@ public class Chessboard {
 
     public void move(Move move) {
         switch (move.getType()) {
-            case STANDARD, DOUBLE:
-                movePiece(move.start(), move.end());
-                break;
-            case CASTLE:
-                castle(move);
-                break;
-            case EN_PASSANT:
-                enPassant(move);
-                break;
-            default:
+            case STANDARD, DOUBLE -> movePiece(move.start(), move.end());
+            case CASTLE -> castle(move);
+            case EN_PASSANT -> enPassant(move);
+            default -> {
                 System.out.println("Invalid move");
                 System.exit(1);
-                break;
+            }
         }
     }
 
     private void enPassant(Move move) {
         movePiece(move.start(), move.end());
 
-        setPieceAt(move.getCapturedPiece().square(), null);
-        pieces.remove(move.getCapturedPiece());
+        setPieceAt(move.getCapturedPiece().get().square(), null);
+        pieces.remove(move.getCapturedPiece().get());
     }
 
     private void movePiece(Square start, Square end) {
-        Piece movingPiece = start.getPiece();
+        Piece movingPiece = start.getPiece().get();
         lastCapturedPiece = end.getPiece();
 
         setPieceAt(start, null);
         movingPiece.setSquare(end);
         setPieceAt(end, movingPiece);
 
-        if (lastCapturedPiece != null) {
-            pieces.remove(lastCapturedPiece);
-        }
+        lastCapturedPiece.ifPresent(pieces::remove);
 
         if (!movingPiece.hasMoved()) {
             movingPiece.setHasMoved(true);
@@ -77,13 +68,13 @@ public class Chessboard {
     //TODO: maybe refactor this
     // only used for testing then undoing illegal moves
     public void undoMove(Move move) {
-        Piece movingPiece = move.end().getPiece();
+        Piece movingPiece = move.end().getPiece().get();
 
         setPieceAt(move.start(), movingPiece);
 
-        if (lastCapturedPiece != null) {
-            setPieceAt(move.end(), lastCapturedPiece);
-            pieces.add(lastCapturedPiece);
+        if (lastCapturedPiece.isPresent()) {
+            setPieceAt(move.end(), lastCapturedPiece.get());
+            pieces.add(lastCapturedPiece.get());
         } else {
             setPieceAt(move.end(), null);
         }
@@ -114,14 +105,15 @@ public class Chessboard {
         return board[row * NUM_COLS + col];
     }
 
-    public Piece pieceAt(int row, int col) {
+    public Optional<Piece> pieceAt(int row, int col) {
         return squareAt(row, col).getPiece();
     }
 
     public Piece pieceAt(Square square) {
-        return pieceAt(square.getRow(), square.getCol());
+        return pieceAt(square.getRow(), square.getCol()).get();
     }
 
+    //TODO refactor using StringBuilder
     public String toString() {
 
         String line = "";
@@ -144,7 +136,7 @@ public class Chessboard {
 
         String line = "";
         String res = "";
-        String output = "";
+        String output;
 
         for (int i = board.length - 1; i >= 0; i--) {
             if (threatMap.contains(board[i])) {
@@ -194,8 +186,8 @@ public class Chessboard {
             setPieceAt(squareAt(1, i), new Pawn(Color.WHITE));
             setPieceAt(squareAt(6, i), new Pawn(Color.BLACK));
 
-            pieces.add(pieceAt(1, i));
-            pieces.add(pieceAt(6, i));
+            pieces.add(pieceAt(1, i).get());
+            pieces.add(pieceAt(6, i).get());
         }
 
         setUpKingRow(0, Color.WHITE);
@@ -213,7 +205,7 @@ public class Chessboard {
         setPieceAt(squareAt(row, 7), new Rook(color));
 
         for (int i = 0; i < 8; i++ ) {
-            pieces.add(pieceAt(row, i));
+            pieces.add(pieceAt(row, i).get());
         }
     }
 

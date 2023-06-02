@@ -5,7 +5,6 @@ import com.brianwehrle.chess.models.pieces.Piece;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 public class Game {
 
@@ -54,7 +53,7 @@ public class Game {
             //if (i == possibleMoves.size() / 2) System.out.println();
         }
 
-        int nextMove = Integer.valueOf(scanner.next()) - 1;
+        int nextMove = Integer.parseInt(scanner.next()) - 1;
 
         board.move(possibleMoves.get(nextMove));
         prevMoves.add(possibleMoves.get(nextMove));
@@ -100,7 +99,7 @@ public class Game {
                         for (int scalar = 2; nextSquare != null; scalar++) {
                             threatMap.add(nextSquare);
 
-                            if (nextSquare.getPiece() != null) break;
+                            if (nextSquare.getPiece().isPresent()) break;
 
                             // knights have no scalars
                             if (piece.getType() == Piece.PieceType.KNIGHT) break;
@@ -128,7 +127,7 @@ public class Game {
                         Square nextSquare = board.squareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
 
                         if (nextSquare != null) { // is in bounds
-                            if (nextSquare.getPiece() == null || !piece.sameColor(nextSquare.getPiece()))
+                            if (nextSquare.isEmpty() || piece.differentColorThan(nextSquare.getPiece().get()))
                                 moves.add(new Move(Move.MoveType.STANDARD, start, nextSquare));
                         }
                     }
@@ -139,7 +138,7 @@ public class Game {
                     for (Direction direction : piece.getDirections()) {
                         int dy = direction.dy();
                         Square nextSquare = board.squareAt(start.getRow() + dy, start.getCol());
-                        if (nextSquare.getPiece() == null) {
+                        if (nextSquare.isEmpty()) {
                             if (Math.abs(dy) == 2) {
                                 moves.add(new Move(Move.MoveType.DOUBLE, start, nextSquare));
                             } else {
@@ -155,7 +154,7 @@ public class Game {
                     for (int dx = -1; dx <= 1; dx += 2) { // just checks both forward diagonals
                         Square nextSquare = board.squareAt(start.getRow() + dy, start.getCol() + dx);
                         if (nextSquare != null) {
-                            if (nextSquare.getPiece() != null && !piece.sameColor(nextSquare.getPiece()))
+                            if (!nextSquare.isEmpty() && piece.differentColorThan(nextSquare.getPiece().get()))
                                 moves.add(new Move(Move.MoveType.STANDARD, start, nextSquare));
                         }
                     }
@@ -166,7 +165,6 @@ public class Game {
                         Piece capturedPawn = board.pieceAt(board.squareAt(endSquare.getRow() - dy, endSquare.getCol()));
                         moves.add(new Move(Move.MoveType.EN_PASSANT, start, endSquare, capturedPawn));
                     }
-
                 }
 
                 case QUEEN, ROOK, BISHOP, KNIGHT -> {
@@ -175,9 +173,9 @@ public class Game {
                         Square nextSquare = board.squareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
 
                         for (int scalar = 2; nextSquare != null; scalar++) {
-                            if (nextSquare.getPiece() == null) {
+                            if (nextSquare.isEmpty()) {
                                 moves.add(new Move(Move.MoveType.STANDARD, start, nextSquare));
-                            } else if (!piece.sameColor(nextSquare.getPiece())) {
+                            } else if (piece.differentColorThan(nextSquare.getPiece().get())) {
                                 moves.add(new Move(Move.MoveType.STANDARD, start, nextSquare));
                                 break;
                             } else {
@@ -229,39 +227,39 @@ public class Game {
     private Square canCastle(Piece rook) {
         Color color = rook.getColor();
 
-        Piece king = board.getKingLoc(color).getPiece();
+        Piece king = board.getKingLoc(color).getPiece().get();
         if (king.hasMoved() || rook.hasMoved()) return null;
 
         // white long
         if (rook.square() == board.squareAt(0, 0)) {
-            if (board.pieceAt(0, 1) == null && !isUnderAttack(color, board.squareAt(0, 1)) &&
-                board.pieceAt(0, 2) == null && !isUnderAttack(color, board.squareAt(0, 2)) &&
-                board.pieceAt(0, 3) == null && !isUnderAttack(color, board.squareAt(0, 3))) {
+            if (board.squareAt(0, 1).isEmpty() && !isUnderAttack(color, board.squareAt(0, 1)) &&
+                board.squareAt(0, 2).isEmpty() && !isUnderAttack(color, board.squareAt(0, 2)) &&
+                board.squareAt(0, 3).isEmpty() && !isUnderAttack(color, board.squareAt(0, 3))) {
 
                 return board.squareAt(0, 3);
             }
         }
         // white short
         if (rook.square() == board.squareAt(0, 7)) {
-            if (board.pieceAt(0, 6) == null && !isUnderAttack(color, board.squareAt(0, 6)) &&
-                board.pieceAt(0, 5) == null && !isUnderAttack(color, board.squareAt(0, 5))) {
+            if (board.squareAt(0, 6).isEmpty() && !isUnderAttack(color, board.squareAt(0, 6)) &&
+                board.squareAt(0, 5).isEmpty() && !isUnderAttack(color, board.squareAt(0, 5))) {
 
                 return board.squareAt(0, 5);
             }
         }
         // black long
         if (rook.square() == board.squareAt(7, 0)) {
-            if (board.pieceAt(7, 1) == null && !isUnderAttack(color, board.squareAt(7, 1)) &&
-                board.pieceAt(7, 2) == null && !isUnderAttack(color, board.squareAt(7, 2)) &&
-                board.pieceAt(7, 3) == null && !isUnderAttack(color, board.squareAt(7, 3))) {
+            if (board.squareAt(7, 1).isEmpty() && !isUnderAttack(color, board.squareAt(7, 1)) &&
+                board.squareAt(7, 2).isEmpty() && !isUnderAttack(color, board.squareAt(7, 2)) &&
+                board.squareAt(7, 3).isEmpty() && !isUnderAttack(color, board.squareAt(7, 3))) {
 
                 return board.squareAt(7, 3);
             }
         }
         // black short
         if (rook.square() == board.squareAt(7, 7)) {
-            if (board.pieceAt(7, 6) == null && !isUnderAttack(color, board.squareAt(7, 6)) &&
-                board.pieceAt(7, 5) == null && !isUnderAttack(color, board.squareAt(7, 5))) {
+            if (board.squareAt(7, 6).isEmpty() && !isUnderAttack(color, board.squareAt(7, 6)) &&
+                board.squareAt(7, 5).isEmpty() && !isUnderAttack(color, board.squareAt(7, 5))) {
 
                 return board.squareAt(7, 5);
             }

@@ -2,15 +2,21 @@ package com.brianwehrle.chess.models;
 
 import com.brianwehrle.chess.models.pieces.Piece;
 
+import java.util.Optional;
+
 public class Square {
-    private int row;
-    private int col;
-    private Piece piece;
+    private final int row;
+    private final int col;
+    private Optional<Piece> piece;
 
     public Square(int row, int col) {
         this.row = row;
         this.col = col;
-        this.piece = null;
+        this.piece = Optional.empty();
+    }
+
+    public boolean isEmpty() {
+        return piece.isEmpty();
     }
 
     public int getRow() {
@@ -21,12 +27,12 @@ public class Square {
         return col;
     }
 
-    public Piece getPiece() {
+    public Optional<Piece> getPiece() {
         return piece;
     }
 
     public void setPiece(Piece piece) {
-        this.piece = piece;
+        this.piece = Optional.ofNullable(piece);
     }
 
     @Override
@@ -37,7 +43,6 @@ public class Square {
     }
 
     public String toString(int code) {
-        if (piece == null) return "\u2003";
-        else return piece.toString(code);
+        return piece.map(p -> p.toString(code)).orElse("\u2003");
     }
 }
