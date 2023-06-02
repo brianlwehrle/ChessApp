@@ -1,19 +1,18 @@
 package com.brianwehrle.chess.models;
 
 import com.brianwehrle.chess.models.pieces.Piece;
-import com.brianwehrle.chess.models.pieces.PieceType;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Game {
 
     private final Chessboard board;
     private final Player whitePlayer, blackPlayer;
-    private Color currentPlayer;
+    private Color currentColor;
     private final ArrayList<Move> prevMoves;
-    private ArrayList<Square> threatMap;
 
 
     public Game(Player white, Player black) {
@@ -23,7 +22,7 @@ public class Game {
         this.blackPlayer = black;
         whitePlayer.setColor(Color.WHITE);
         blackPlayer.setColor(Color.BLACK);
-        currentPlayer = Color.WHITE;
+        currentColor = Color.WHITE;
 
         prevMoves = new ArrayList<>();
     }
@@ -35,41 +34,39 @@ public class Game {
         while (true) {
             System.out.println(board);
 
-            possibleMoves = getThreatsAndPossibleMoves(currentPlayer);
+            possibleMoves = getPossibleMoves(currentColor);
             removeIllegalMoves(possibleMoves);
 
             if (gameOver(possibleMoves)) return;
 
             getAndMakeMove(possibleMoves);
 
-            currentPlayer = (currentPlayer == Color.WHITE ? Color.BLACK : Color.WHITE);
+            currentColor = (currentColor == Color.WHITE ? Color.BLACK : Color.WHITE);
         }
     }
 
     private void getAndMakeMove(ArrayList<Move> possibleMoves) {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println(currentPlayer + " to move: ");
+        System.out.println(currentColor + " to move: ");
         for (int i = 1; i <= possibleMoves.size(); i++) {
-            System.out.print(i + ":" + possibleMoves.get(i-1) + " ");
-            if (i % 5 == 0) System.out.println();
+            System.out.println(i + ") " + possibleMoves.get(i-1) + " ");
+            //if (i == possibleMoves.size() / 2) System.out.println();
         }
 
         int nextMove = Integer.valueOf(scanner.next()) - 1;
 
-        board.movePiece(possibleMoves.get(nextMove));
+        board.move(possibleMoves.get(nextMove));
         prevMoves.add(possibleMoves.get(nextMove));
     }
 
-    // each call makes a new threat map for currentPlayer
-    private ArrayList<Move> getThreatsAndPossibleMoves(Color color) {
-        ArrayList<Move> moves = new ArrayList<>();
-        threatMap = new ArrayList<>();
+    private ArrayList<Square> getThreatMap(Color color ) {
+        ArrayList<Square> threatMap = new ArrayList<>();
 
-        ArrayList<Piece> curPieces = (color == Color.WHITE ? board.getWhitePieces() : board.getBlackPieces());
+        ArrayList<Piece> curPieces = board.getPieces(color);
 
         for (Piece piece : curPieces) {
-            Square start = piece.getCurSquare();
+            Square start = piece.square();
 
             switch (piece.getType()) {
                 case KING -> {
@@ -77,23 +74,13 @@ public class Game {
                         Square nextSquare = board.squareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
 
                         if (nextSquare != null) { // is in bounds
-                            if (nextSquare.getPiece() == null || !piece.sameColor(nextSquare.getPiece()))
-                                moves.add(new Move(start, nextSquare));
                             threatMap.add(nextSquare);
                         }
                     }
-
-                    moves.addAll(castle(color));
                 }
 
                 case PAWN -> {
-                    //moving
-                    for (Direction direction : piece.getDirections()) {
-                        int dy = direction.dy();
-                        Square nextSquare = board.squareAt(start.getRow() + dy, start.getCol());
-                        if (nextSquare.getPiece() == null)
-                            moves.add(new Move(start, nextSquare));
-                    }
+                    // en passant threats aren't added because they can never be used to check a king
 
                     //attacking
                     int dy = piece.getDirections().get(0).dy();
@@ -101,12 +88,8 @@ public class Game {
                         Square nextSquare = board.squareAt(start.getRow() + dy, start.getCol() + dx);
                         if (nextSquare != null) {
                             threatMap.add(nextSquare);
-                            if (nextSquare.getPiece() != null) {
-                                moves.add(new Move(start, nextSquare));
-                            }
                         }
                     }
-
                 }
 
                 case QUEEN, ROOK, BISHOP, KNIGHT -> {
@@ -117,21 +100,100 @@ public class Game {
                         for (int scalar = 2; nextSquare != null; scalar++) {
                             threatMap.add(nextSquare);
 
+                            if (nextSquare.getPiece() != null) break;
+
+                            // knights have no scalars
+                            if (piece.getType() == Piece.PieceType.KNIGHT) break;
+
+                            nextSquare = board.squareAt(start.getRow() + direction.dy() * scalar, start.getCol() + direction.dx() * scalar);
+                        }
+                    }
+                }
+            }
+        }
+        return threatMap;
+    }
+
+    private ArrayList<Move> getPossibleMoves(Color color) {
+        ArrayList<Move> moves = new ArrayList<>();
+
+        ArrayList<Piece> curPieces = board.getPieces(color);
+
+        for (Piece piece : curPieces) {
+            Square start = piece.square();
+
+            switch (piece.getType()) {
+                case KING -> {
+                    for (Direction direction : piece.getDirections()) {
+                        Square nextSquare = board.squareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
+
+                        if (nextSquare != null) { // is in bounds
+                            if (nextSquare.getPiece() == null || !piece.sameColor(nextSquare.getPiece()))
+                                moves.add(new Move(Move.MoveType.STANDARD, start, nextSquare));
+                        }
+                    }
+                }
+
+                case PAWN -> {
+                    //moving
+                    for (Direction direction : piece.getDirections()) {
+                        int dy = direction.dy();
+                        Square nextSquare = board.squareAt(start.getRow() + dy, start.getCol());
+                        if (nextSquare.getPiece() == null) {
+                            if (Math.abs(dy) == 2) {
+                                moves.add(new Move(Move.MoveType.DOUBLE, start, nextSquare));
+                            } else {
+                                moves.add(new Move(Move.MoveType.STANDARD, start, nextSquare));
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+
+                    //attacking
+                    int dy = piece.getDirections().get(0).dy();
+                    for (int dx = -1; dx <= 1; dx += 2) { // just checks both forward diagonals
+                        Square nextSquare = board.squareAt(start.getRow() + dy, start.getCol() + dx);
+                        if (nextSquare != null) {
+                            if (nextSquare.getPiece() != null && !piece.sameColor(nextSquare.getPiece()))
+                                moves.add(new Move(Move.MoveType.STANDARD, start, nextSquare));
+                        }
+                    }
+
+                    // en passant
+                    Square endSquare = canEnPassant(piece);
+                    if (endSquare != null) {
+                        Piece capturedPawn = board.pieceAt(board.squareAt(endSquare.getRow() - dy, endSquare.getCol()));
+                        moves.add(new Move(Move.MoveType.EN_PASSANT, start, endSquare, capturedPawn));
+                    }
+
+                }
+
+                case QUEEN, ROOK, BISHOP, KNIGHT -> {
+                    // for each direction build a path of moves until you hit another piece
+                    for (Direction direction : piece.getDirections()) {
+                        Square nextSquare = board.squareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
+
+                        for (int scalar = 2; nextSquare != null; scalar++) {
                             if (nextSquare.getPiece() == null) {
-                                moves.add(new Move(start, nextSquare));
+                                moves.add(new Move(Move.MoveType.STANDARD, start, nextSquare));
                             } else if (!piece.sameColor(nextSquare.getPiece())) {
-                                moves.add(new Move(start, nextSquare));
+                                moves.add(new Move(Move.MoveType.STANDARD, start, nextSquare));
                                 break;
                             } else {
                                 break;
                             }
 
                             // knights have no scalars
-                            if (piece.getType() == PieceType.KNIGHT) break;
+                            if (piece.getType() == Piece.PieceType.KNIGHT) break;
 
                             nextSquare = board.squareAt(start.getRow() + direction.dy() * scalar, start.getCol() + direction.dx() * scalar);
                         }
                     }
+                    //castling
+                    Square finalSquare = canCastle(piece);
+                    if (piece.getType() == Piece.PieceType.ROOK && finalSquare != null)
+                        moves.add(new Move(Move.MoveType.CASTLE, piece.square(), finalSquare));
                 }
             }
         }
@@ -142,64 +204,97 @@ public class Game {
     private void removeIllegalMoves(ArrayList<Move> possibleMoves) {
         // cannot move if my king would be in check
         // simulate each move and see if my king would be in check
-        Color otherColor = (currentPlayer == Color.WHITE ? Color.BLACK : Color.WHITE);
         for (Iterator<Move> iterator = possibleMoves.iterator(); iterator.hasNext(); ) {
             Move move = iterator.next();
-
-            board.movePiece(move);
-            getThreatsAndPossibleMoves(otherColor); // has only the effect of creating a new threat map.
-
-            if (isInCheck(currentPlayer)) {
+            // TODO: see if this is necessary
+            if (move.getType() == Move.MoveType.CASTLE) continue;
+            board.move(move);
+            if (isInCheck(currentColor)) {
                iterator.remove();
             }
-
             board.undoMove(move);
         }
-
     }
 
-    private boolean isUnderAttack(Square square) {
-        return threatMap.contains(square);
+    private boolean isUnderAttack(Color color, Square square) {
+        // check threats of other color
+        return getThreatMap(color == Color.WHITE ? Color.BLACK : Color.WHITE).contains(square);
     }
 
     private boolean isInCheck(Color color) {
-        return isUnderAttack(board.findKing(color));
+        return isUnderAttack(color, board.getKingLoc(color));
     }
 
-    private ArrayList<Move> castle(Color color) {
-        ArrayList<Move> moves = new ArrayList<>();
-        int row = (color == Color.WHITE ? 0 : 7);
+    // returns the final square of the rook if castling is possible, null otherwise
+    private Square canCastle(Piece rook) {
+        Color color = rook.getColor();
 
-        if (!board.findKing(color).getPiece().hasMoved()) {
-            moves.addAll(kingSideCastle(row));
+        Piece king = board.getKingLoc(color).getPiece();
+        if (king.hasMoved() || rook.hasMoved()) return null;
+
+        // white long
+        if (rook.square() == board.squareAt(0, 0)) {
+            if (board.pieceAt(0, 1) == null && !isUnderAttack(color, board.squareAt(0, 1)) &&
+                board.pieceAt(0, 2) == null && !isUnderAttack(color, board.squareAt(0, 2)) &&
+                board.pieceAt(0, 3) == null && !isUnderAttack(color, board.squareAt(0, 3))) {
+
+                return board.squareAt(0, 3);
+            }
+        }
+        // white short
+        if (rook.square() == board.squareAt(0, 7)) {
+            if (board.pieceAt(0, 6) == null && !isUnderAttack(color, board.squareAt(0, 6)) &&
+                board.pieceAt(0, 5) == null && !isUnderAttack(color, board.squareAt(0, 5))) {
+
+                return board.squareAt(0, 5);
+            }
+        }
+        // black long
+        if (rook.square() == board.squareAt(7, 0)) {
+            if (board.pieceAt(7, 1) == null && !isUnderAttack(color, board.squareAt(7, 1)) &&
+                board.pieceAt(7, 2) == null && !isUnderAttack(color, board.squareAt(7, 2)) &&
+                board.pieceAt(7, 3) == null && !isUnderAttack(color, board.squareAt(7, 3))) {
+
+                return board.squareAt(7, 3);
+            }
+        }
+        // black short
+        if (rook.square() == board.squareAt(7, 7)) {
+            if (board.pieceAt(7, 6) == null && !isUnderAttack(color, board.squareAt(7, 6)) &&
+                board.pieceAt(7, 5) == null && !isUnderAttack(color, board.squareAt(7, 5))) {
+
+                return board.squareAt(7, 5);
+            }
         }
 
-        return moves;
+        return null;
     }
 
-    private ArrayList<Move> kingSideCastle(int row) {
-        ArrayList<Move> moves = new ArrayList<>();
+    // returns the square that the capturing pawn will end on
+    private Square canEnPassant(Piece pawn) {
+        if (prevMoves.isEmpty()) return null;
 
-        Piece rook = board.pieceAt(row, 7);
-        if (rook == null || rook.hasMoved() || rook.getType() != PieceType.ROOK) return moves;
-        if (board.squareAt(row, 6).getPiece() != null && board.squareAt(row, 5).getPiece() != null) return moves;
+        Move prev = prevMoves.get(prevMoves.size() - 1);
 
-        for (int col = 6; col <= 7; col++) {
-            Square curSquare = board.squareAt(row, col);
-            if (curSquare.getPiece() != null || isUnderAttack(curSquare)) return moves;
+        if (prev.getType() == Move.MoveType.DOUBLE &&
+            areAdjacent(pawn, prev.getMovingPiece())) {
+
+            int dy = (prev.getMovingPiece().getColor() == Color.WHITE ? -1 : 1);
+            return board.squareAt(prev.end().getRow() + dy, prev.end().getCol());
         }
 
-        // all clear to castle
-        moves.add(new Move(board.squareAt(row, 4), board.squareAt(row, 6))); // move king
-        moves.add(new Move(board.squareAt(row, 7), board.squareAt(row, 5))); // move rook
+        return null;
+    }
 
-        return moves;
+    private boolean areAdjacent(Piece p1, Piece p2) {
+        return (p1.square().getRow() == p2.square().getRow() &&
+                Math.abs(p1.square().getCol() - p2.square().getCol()) == 1);
     }
 
     private boolean gameOver(ArrayList<Move> legalMoves) {
         if (legalMoves.isEmpty()) {
-            if (isInCheck(currentPlayer)) {
-                System.out.println(currentPlayer + " loses!");
+            if (isInCheck(currentColor)) {
+                System.out.println(currentColor == Color.WHITE ? Color.BLACK : Color.WHITE + " wins!");
             } else {
                 System.out.println("Stalemate!");
             }

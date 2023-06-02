@@ -6,7 +6,16 @@ import com.brianwehrle.chess.models.Square;
 
 import java.util.ArrayList;
 
-public abstract class Piece{
+public abstract class Piece {
+
+    public enum PieceType {
+        PAWN,
+        KNIGHT,
+        BISHOP,
+        ROOK,
+        QUEEN,
+        KING
+    }
 
     protected PieceType type;
     protected final Color color;
@@ -41,7 +50,7 @@ public abstract class Piece{
         this.hasMoved = hasMoved;
     }
 
-    public void setCurSquare(Square curSquare) {
+    public void setSquare(Square curSquare) {
         this.curSquare = curSquare;
     }
 
@@ -49,7 +58,7 @@ public abstract class Piece{
         return type;
     }
 
-    public Square getCurSquare() {
+    public Square square() {
         return curSquare;
     }
 

@@ -2,32 +2,22 @@ package com.brianwehrle.chess.models;
 
 import com.brianwehrle.chess.models.pieces.*;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Chessboard {
     private static int NUM_ROWS, NUM_COLS;
-
-
     private Square[] board; // rows and cols grow down and right
-                            // simpler than a 2d array
-    private ArrayList<Piece> blackPieces;
-    private ArrayList<Piece> whitePieces;
+                            // represents a 2d array
+    private final ArrayList<Piece> pieces;
     private Piece lastCapturedPiece;
-
-    public ArrayList<Piece> getBlackPieces() {
-        return blackPieces;
-    }
-
-    public ArrayList<Piece> getWhitePieces() {
-        return whitePieces;
-    }
 
     public Chessboard() {
         NUM_COLS = NUM_ROWS = 8;
 
         board = new Square[NUM_COLS * NUM_ROWS];
-        whitePieces = new ArrayList<>();
-        blackPieces = new ArrayList<>();
+        pieces = new ArrayList<>();
         lastCapturedPiece = null;
 
         for (int row = 0; row < NUM_ROWS; row++) {
@@ -39,20 +29,41 @@ public class Chessboard {
         initialSetup();
     }
 
-    public void movePiece(Move move) {
-        Piece movingPiece = move.start().getPiece();
-        lastCapturedPiece = move.end().getPiece();
+    public void move(Move move) {
+        switch (move.getType()) {
+            case STANDARD, DOUBLE:
+                movePiece(move.start(), move.end());
+                break;
+            case CASTLE:
+                castle(move);
+                break;
+            case EN_PASSANT:
+                enPassant(move);
+                break;
+            default:
+                System.out.println("Invalid move");
+                System.exit(1);
+                break;
+        }
+    }
 
-        setPieceAt(move.start(), null);
-        movingPiece.setCurSquare(move.end());
-        setPieceAt(move.end(), movingPiece);
+    private void enPassant(Move move) {
+        movePiece(move.start(), move.end());
+
+        setPieceAt(move.getCapturedPiece().square(), null);
+        pieces.remove(move.getCapturedPiece());
+    }
+
+    private void movePiece(Square start, Square end) {
+        Piece movingPiece = start.getPiece();
+        lastCapturedPiece = end.getPiece();
+
+        setPieceAt(start, null);
+        movingPiece.setSquare(end);
+        setPieceAt(end, movingPiece);
 
         if (lastCapturedPiece != null) {
-            if (lastCapturedPiece.getColor() == Color.WHITE) {
-                whitePieces.remove(lastCapturedPiece);
-            } else {
-                blackPieces.remove(lastCapturedPiece);
-            }
+            pieces.remove(lastCapturedPiece);
         }
 
         if (!movingPiece.hasMoved()) {
@@ -63,6 +74,8 @@ public class Chessboard {
         }
     }
 
+    //TODO: maybe refactor this
+    // only used for testing then undoing illegal moves
     public void undoMove(Move move) {
         Piece movingPiece = move.end().getPiece();
 
@@ -70,11 +83,7 @@ public class Chessboard {
 
         if (lastCapturedPiece != null) {
             setPieceAt(move.end(), lastCapturedPiece);
-            if (lastCapturedPiece.getColor() == Color.WHITE) {
-                whitePieces.add(lastCapturedPiece);
-            } else {
-                blackPieces.add(lastCapturedPiece);
-            }
+            pieces.add(lastCapturedPiece);
         } else {
             setPieceAt(move.end(), null);
         }
@@ -84,25 +93,33 @@ public class Chessboard {
         }
     }
 
-    public Square findKing(Color color) {
-        if (color == Color.BLACK) {
-            for (Piece piece : blackPieces) {
-                if (piece.getType() == PieceType.KING) return piece.getCurSquare();
-            }
-        } else {
-            for (Piece piece : whitePieces) {
-                if (piece.getType() == PieceType.KING) return piece.getCurSquare();
-            }
-        }
+    public Square getKingLoc(Color color) {
+        Piece king = pieces.stream()
+                .filter(piece -> piece.getType() == Piece.PieceType.KING)
+                .filter(piece -> piece.getColor() == color)
+                .findFirst()
+                .orElse(null);
 
-        System.err.println("Error, couldn't find King!!");
-        return null;
+        if (king != null) {
+            return king.square();
+        } else {
+            System.err.println("Error, couldn't find King!!");
+            return null;
+        }
     }
 
     public Square squareAt(int row, int col) {
         if (row > 7 || col > 7 || row < 0 || col < 0) return null;
 
         return board[row * NUM_COLS + col];
+    }
+
+    public Piece pieceAt(int row, int col) {
+        return squareAt(row, col).getPiece();
+    }
+
+    public Piece pieceAt(Square square) {
+        return pieceAt(square.getRow(), square.getCol());
     }
 
     public String toString() {
@@ -149,15 +166,26 @@ public class Chessboard {
 
     public void setPieceAt(Square square, Piece piece) {
         if (piece != null) {
-            piece.setCurSquare(square);
+            piece.setSquare(square);
             square.setPiece(piece);
         } else {
             square.setPiece(null);
         }
     }
 
-    public Piece pieceAt(int row, int col) {
-        return squareAt(row, col).getPiece();
+    private void castle(Move move) {
+        // move the rook
+        movePiece(move.start(), move.end());
+
+        // move king
+        // white long
+        if (move.start() == squareAt(0, 0)) movePiece(squareAt(0, 4), squareAt(0, 2));
+        // white short
+        if (move.start() == squareAt(0, 7)) movePiece(squareAt(0, 4), squareAt(0, 6));
+        // black long
+        if (move.start() == squareAt(7, 0)) movePiece(squareAt(7, 4), squareAt(7, 2));
+        // black short
+        if (move.start() == squareAt(7, 7)) movePiece(squareAt(7, 4), squareAt(7, 6));
     }
 
     private void initialSetup() {
@@ -165,19 +193,13 @@ public class Chessboard {
         for (int i = 0; i < 8; i++) {
             setPieceAt(squareAt(1, i), new Pawn(Color.WHITE));
             setPieceAt(squareAt(6, i), new Pawn(Color.BLACK));
+
+            pieces.add(pieceAt(1, i));
+            pieces.add(pieceAt(6, i));
         }
+
         setUpKingRow(0, Color.WHITE);
         setUpKingRow(7, Color.BLACK);
-
-        for (int i = 0; i < 16; i++) {
-            if (board[i].getPiece() == null) continue;
-            whitePieces.add(board[i].getPiece());
-        }
-
-        for (int i = 48; i < board.length; i++) {
-            if (board[i].getPiece() == null) continue;
-            blackPieces.add(board[i].getPiece());
-        }
     }
 
     private void setUpKingRow(int row, Color color) {
@@ -189,5 +211,25 @@ public class Chessboard {
         setPieceAt(squareAt(row, 5), new Bishop(color));
         setPieceAt(squareAt(row, 6), new Knight(color));
         setPieceAt(squareAt(row, 7), new Rook(color));
+
+        for (int i = 0; i < 8; i++ ) {
+            pieces.add(pieceAt(row, i));
+        }
     }
+
+    public ArrayList<Piece> getPieces() {
+        return pieces;
+    }
+
+    public ArrayList<Piece> getPieces(Color color) {
+        ArrayList<Piece> colorPieces = new ArrayList<>();
+
+        for (Piece piece : pieces) {
+            if (piece.getColor() == color) colorPieces.add(piece);
+        }
+
+        return colorPieces;
+    }
+
+
 }
