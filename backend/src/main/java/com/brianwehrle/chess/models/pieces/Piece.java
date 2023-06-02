@@ -21,6 +21,10 @@ public abstract class Piece{
         movedLastTurn = false;
     }
 
+    public boolean sameColor(Piece piece) {
+        return this.color == piece.getColor();
+    }
+
     public void setMovedLastTurn(boolean movedLastTurn) {
         this.movedLastTurn = movedLastTurn;
     }
@@ -37,6 +41,10 @@ public abstract class Piece{
         this.hasMoved = hasMoved;
     }
 
+    public void setCurSquare(Square curSquare) {
+        this.curSquare = curSquare;
+    }
+
     public PieceType getType() {
         return type;
     }
@@ -47,10 +55,6 @@ public abstract class Piece{
 
     public Color getColor() {
         return color;
-    }
-
-    public void setCurSquare(Square curSquare) {
-        this.curSquare = curSquare;
     }
 
     public abstract ArrayList<Direction> getDirections();

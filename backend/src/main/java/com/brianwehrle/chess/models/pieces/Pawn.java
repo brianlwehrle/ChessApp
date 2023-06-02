@@ -17,8 +17,16 @@ public class Pawn extends Piece {
     public ArrayList<Direction> getDirections() {
         int dy = (super.color == Color.WHITE ? 1 : -1);
 
-        return new ArrayList<>(Arrays.asList(
-                new Direction(0, dy)
-        ));
+        if (super.hasMoved) {
+            return new ArrayList<>(Arrays.asList(
+                    new Direction(0, dy)
+            ));
+        } else {
+            return new ArrayList<>(Arrays.asList(
+                    new Direction(0, dy),
+                    new Direction(0, dy * 2)
+            ));
+        }
+
     }
 }

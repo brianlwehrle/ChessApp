@@ -39,7 +39,7 @@ public class Chessboard {
         initialSetup();
     }
 
-    public void makeMove(Move move) {
+    public void movePiece(Move move) {
         Piece movingPiece = move.start().getPiece();
         lastCapturedPiece = move.end().getPiece();
 
@@ -67,6 +67,7 @@ public class Chessboard {
         Piece movingPiece = move.end().getPiece();
 
         setPieceAt(move.start(), movingPiece);
+
         if (lastCapturedPiece != null) {
             setPieceAt(move.end(), lastCapturedPiece);
             if (lastCapturedPiece.getColor() == Color.WHITE) {
@@ -83,14 +84,14 @@ public class Chessboard {
         }
     }
 
-    public Piece getKing(Color color) {
+    public Square findKing(Color color) {
         if (color == Color.BLACK) {
             for (Piece piece : blackPieces) {
-                if (piece.getType() == PieceType.KING) return piece;
+                if (piece.getType() == PieceType.KING) return piece.getCurSquare();
             }
         } else {
             for (Piece piece : whitePieces) {
-                if (piece.getType() == PieceType.KING) return piece;
+                if (piece.getType() == PieceType.KING) return piece.getCurSquare();
             }
         }
 
@@ -98,7 +99,7 @@ public class Chessboard {
         return null;
     }
 
-    public Square getSquareAt(int row, int col) {
+    public Square squareAt(int row, int col) {
         if (row > 7 || col > 7 || row < 0 || col < 0) return null;
 
         return board[row * NUM_COLS + col];
@@ -155,67 +156,38 @@ public class Chessboard {
         }
     }
 
+    public Piece pieceAt(int row, int col) {
+        return squareAt(row, col).getPiece();
+    }
+
     private void initialSetup() {
         // Pawns
         for (int i = 0; i < 8; i++) {
-            Piece blackPawn = new Pawn(Color.BLACK);
-            Piece whitePawn = new Pawn(Color.WHITE);
-            setPieceAt(getSquareAt(1, i), whitePawn);
-            setPieceAt(getSquareAt(6, i), blackPawn);
+            setPieceAt(squareAt(1, i), new Pawn(Color.WHITE));
+            setPieceAt(squareAt(6, i), new Pawn(Color.BLACK));
         }
-
-        // Knights
-        Piece blackKnight1 = new Knight(Color.BLACK);
-        Piece blackKnight2 = new Knight(Color.BLACK);
-        Piece whiteKnight1 = new Knight(Color.WHITE);
-        Piece whiteKnight2 = new Knight(Color.WHITE);
-        setPieceAt(getSquareAt(7, 1), blackKnight1);
-        setPieceAt(getSquareAt(7, 6), blackKnight2);
-        setPieceAt(getSquareAt(0, 1), whiteKnight1);
-        setPieceAt(getSquareAt(0, 6), whiteKnight2);
-
-        // Rooks
-        Piece blackRook1 = new Rook(Color.BLACK);
-        Piece blackRook2 = new Rook(Color.BLACK);
-        Piece whiteRook1 = new Rook(Color.WHITE);
-        Piece whiteRook2 = new Rook(Color.WHITE);
-        setPieceAt(getSquareAt(7, 0), blackRook1);
-        setPieceAt(getSquareAt(7, 7), blackRook2);
-        setPieceAt(getSquareAt(0, 0), whiteRook1);
-        setPieceAt(getSquareAt(0, 7), whiteRook2);
-
-        // Bishops
-        Piece blackBishop1 = new Bishop(Color.BLACK);
-        Piece blackBishop2 = new Bishop(Color.BLACK);
-        Piece whiteBishop1 = new Bishop(Color.WHITE);
-        Piece whiteBishop2 = new Bishop(Color.WHITE);
-        setPieceAt(getSquareAt(7, 2), blackBishop1);
-        setPieceAt(getSquareAt(7, 5), blackBishop2);
-        setPieceAt(getSquareAt(0, 2), whiteBishop1);
-        setPieceAt(getSquareAt(0, 5), whiteBishop2);
-
-        // Kings
-        Piece whiteKing = new King(Color.WHITE);
-        Piece blackKing = new King(Color.BLACK);
-        setPieceAt(getSquareAt(7, 3), blackKing);
-        setPieceAt(getSquareAt(0, 3), whiteKing);
-
-        // Queens
-        Piece whiteQueen = new Queen(Color.WHITE);
-        Piece blackQueen = new Queen(Color.BLACK);
-        setPieceAt(getSquareAt(7, 4), blackQueen);
-        setPieceAt(getSquareAt(0, 4), whiteQueen);
+        setUpKingRow(0, Color.WHITE);
+        setUpKingRow(7, Color.BLACK);
 
         for (int i = 0; i < 16; i++) {
             if (board[i].getPiece() == null) continue;
             whitePieces.add(board[i].getPiece());
-            // System.out.println("Added a " + board[i].getPiece().getColor() + " " + board[i].getPiece().getType() + " to square " + board[i].getRow() + ", " + board[i].getCol());
         }
 
         for (int i = 48; i < board.length; i++) {
             if (board[i].getPiece() == null) continue;
             blackPieces.add(board[i].getPiece());
-            // System.out.println("Added a " + board[i].getPiece().getColor() + " " + board[i].getPiece().getType() + " to square " + board[i
         }
+    }
+
+    private void setUpKingRow(int row, Color color) {
+        setPieceAt(squareAt(row, 0), new Rook(color));
+        setPieceAt(squareAt(row, 1), new Knight(color));
+        setPieceAt(squareAt(row, 2), new Bishop(color));
+        setPieceAt(squareAt(row, 3), new Queen(color));
+        setPieceAt(squareAt(row, 4), new King(color));
+        setPieceAt(squareAt(row, 5), new Bishop(color));
+        setPieceAt(squareAt(row, 6), new Knight(color));
+        setPieceAt(squareAt(row, 7), new Rook(color));
     }
 }
