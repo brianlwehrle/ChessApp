@@ -7,8 +7,10 @@ import java.util.Optional;
 
 public class Chessboard {
     private static int NUM_ROWS, NUM_COLS;
-    private final Square[] board; // rows and cols grow down and right
-                            // represents a 2d array
+
+    // represents a 2d array
+    // rows and cols grow down and right
+    private final Square[] board;
     private final ArrayList<Piece> pieces;
     private Optional<Piece> lastCapturedPiece;
 
@@ -28,11 +30,33 @@ public class Chessboard {
         initialSetup();
     }
 
+    //load position
+    public Chessboard(ArrayList<Move> moveList) {
+        NUM_COLS = NUM_ROWS = 8;
+
+        board = new Square[NUM_COLS * NUM_ROWS];
+        pieces = new ArrayList<>();
+        lastCapturedPiece = Optional.empty();
+
+        for (int row = 0; row < NUM_ROWS; row++) {
+            for (int col = 0; col < NUM_COLS; col++) {
+                board[row * NUM_COLS + col] = new Square(row, col);
+            }
+        }
+
+        initialSetup();
+
+        for (Move move : moveList) {
+            move(move);
+        }
+    }
+
     public void move(Move move) {
-        switch (move.getType()) {
-            case STANDARD, DOUBLE -> movePiece(move.start(), move.end());
+        switch (move.getMoveType()) {
+            case STANDARD, DOUBLE -> movePiece(squareAt(move.getInitialRow(), move.getInitialCol()), squareAt(move.getFinalRow(), move.getFinalCol()));
             case CASTLE -> castle(move);
             case EN_PASSANT -> enPassant(move);
+            case PROMOTION -> promote(move);
             default -> {
                 System.out.println("Invalid move");
                 System.exit(1);
@@ -40,8 +64,32 @@ public class Chessboard {
         }
     }
 
+    private void promote(Move move) {
+        Square start = squareAt(move.getInitialRow(), move.getInitialCol());
+        Square end = squareAt(move.getFinalRow(), move.getFinalCol());
+
+        movePiece(start, end);
+        Color color = move.getColor();
+        Piece piece;
+
+        switch (move.getPromotionType()) {
+            case BISHOP -> piece = new Bishop(color);
+            case ROOK -> piece = new Rook(color);
+            case KNIGHT -> piece = new Knight(color);
+            case QUEEN -> piece = new Queen(color);
+            default -> throw new RuntimeException("No promotion type specified."); //TODO make some exceptions
+        }
+
+        pieces.add(piece);
+        pieces.remove(move.getMovingPiece());
+        setPieceAt(end, piece);
+    }
+
     private void enPassant(Move move) {
-        movePiece(move.start(), move.end());
+        Square start = squareAt(move.getInitialRow(), move.getInitialCol());
+        Square end = squareAt(move.getFinalRow(), move.getFinalCol());
+
+        movePiece(start, end);
 
         setPieceAt(move.getCapturedPiece().get().square(), null);
         pieces.remove(move.getCapturedPiece().get());
@@ -62,25 +110,6 @@ public class Chessboard {
             movingPiece.setMovedLastTurn(true);
         } else {
             movingPiece.setMovedLastTurn(false);
-        }
-    }
-
-    //TODO: maybe refactor this
-    // only used for testing then undoing illegal moves
-    public void undoMove(Move move) {
-        Piece movingPiece = move.end().getPiece().get();
-
-        setPieceAt(move.start(), movingPiece);
-
-        if (lastCapturedPiece.isPresent()) {
-            setPieceAt(move.end(), lastCapturedPiece.get());
-            pieces.add(lastCapturedPiece.get());
-        } else {
-            setPieceAt(move.end(), null);
-        }
-
-        if (movingPiece.movedLastTurn()) {
-            movingPiece.setHasMoved(false);
         }
     }
 
@@ -156,7 +185,7 @@ public class Chessboard {
         return res;
     }
 
-    public void setPieceAt(Square square, Piece piece) {
+    private void setPieceAt(Square square, Piece piece) {
         if (piece != null) {
             piece.setSquare(square);
             square.setPiece(piece);
@@ -167,17 +196,20 @@ public class Chessboard {
 
     private void castle(Move move) {
         // move the rook
-        movePiece(move.start(), move.end());
+        Square start = squareAt(move.getInitialRow(), move.getInitialCol());
+        Square end = squareAt(move.getFinalRow(), move.getFinalCol());
+
+        movePiece(start, end);
 
         // move king
         // white long
-        if (move.start() == squareAt(0, 0)) movePiece(squareAt(0, 4), squareAt(0, 2));
+        if (start == squareAt(0, 0)) movePiece(squareAt(0, 4), squareAt(0, 2));
         // white short
-        if (move.start() == squareAt(0, 7)) movePiece(squareAt(0, 4), squareAt(0, 6));
+        if (start == squareAt(0, 7)) movePiece(squareAt(0, 4), squareAt(0, 6));
         // black long
-        if (move.start() == squareAt(7, 0)) movePiece(squareAt(7, 4), squareAt(7, 2));
+        if (start == squareAt(7, 0)) movePiece(squareAt(7, 4), squareAt(7, 2));
         // black short
-        if (move.start() == squareAt(7, 7)) movePiece(squareAt(7, 4), squareAt(7, 6));
+        if (start == squareAt(7, 7)) movePiece(squareAt(7, 4), squareAt(7, 6));
     }
 
     private void initialSetup() {
@@ -204,7 +236,7 @@ public class Chessboard {
         setPieceAt(squareAt(row, 6), new Knight(color));
         setPieceAt(squareAt(row, 7), new Rook(color));
 
-        for (int i = 0; i < 8; i++ ) {
+        for (int i = 0; i < 8; i++) {
             pieces.add(pieceAt(row, i).get());
         }
     }

@@ -19,18 +19,18 @@ public abstract class Piece {
 
     protected PieceType type;
     protected final Color color;
-    protected Square curSquare;
+    protected Square square;
     protected boolean hasMoved;
     private boolean movedLastTurn; // only used for undoing moves
 
     public Piece(Color color) {
-        this.curSquare = null;
+        this.square = null;
         this.color = color;
         hasMoved = false;
         movedLastTurn = false;
     }
 
-    public boolean differentColorThan(Piece piece) {
+    public boolean differentColor(Piece piece) {
         return this.color != piece.getColor();
     }
 
@@ -51,7 +51,7 @@ public abstract class Piece {
     }
 
     public void setSquare(Square curSquare) {
-        this.curSquare = curSquare;
+        this.square = curSquare;
     }
 
     public PieceType getType() {
@@ -59,7 +59,7 @@ public abstract class Piece {
     }
 
     public Square square() {
-        return curSquare;
+        return square;
     }
 
     public Color getColor() {
@@ -78,7 +78,7 @@ public abstract class Piece {
                 case ROOK -> res = (code == 0 ? "♖" : "R");
                 case BISHOP -> res = (code == 0 ? "♗" : "B");
                 case KNIGHT -> res = (code == 0 ? "♘" : "N");
-                case PAWN -> res += (code == 0 ? "♙" : (char)(curSquare.getCol() + 'a'));
+                case PAWN -> res += (code == 0 ? "♙" : (char)(square.getCol() + 'a'));
                 default -> res = "Piece not associated with a type?";
             }
         } else {
@@ -88,7 +88,7 @@ public abstract class Piece {
                 case ROOK -> res = (code == 0 ? "♜" : "R");
                 case BISHOP -> res = (code == 0 ? "♝" : "B");
                 case KNIGHT -> res = (code == 0 ? "♞" : "N");
-                case PAWN -> res += (code == 0 ? "♟" : (char)(curSquare.getCol() + 'a'));
+                case PAWN -> res += (code == 0 ? "♟" : (char)(square.getCol() + 'a'));
                 default -> res = "Piece not associated with a type?";
             }
         }
