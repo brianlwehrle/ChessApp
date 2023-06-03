@@ -150,9 +150,9 @@ public class Move {
 
     public Piece.PieceType getMovingPiece() { return movingPiece; }
 
-//    public Optional<Piece> getCapturedPiece() {
-//        return capturedPiece;
-//    }
+    public Optional<Piece> getCapturedPiece() {
+        return capturedPiece;
+    }
 
     public Piece.PieceType getPromotionType() {
         return promotionType;
