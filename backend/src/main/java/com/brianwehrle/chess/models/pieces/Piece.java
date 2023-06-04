@@ -20,34 +20,14 @@ public abstract class Piece {
     protected PieceType type;
     protected final Color color;
     protected Square square;
-    protected boolean hasMoved;
-    private boolean movedLastTurn; // only used for undoing moves
 
     public Piece(Color color) {
         this.square = null;
         this.color = color;
-        hasMoved = false;
-        movedLastTurn = false;
     }
 
     public boolean differentColor(Piece piece) {
         return this.color != piece.getColor();
-    }
-
-    public void setMovedLastTurn(boolean movedLastTurn) {
-        this.movedLastTurn = movedLastTurn;
-    }
-
-    public boolean movedLastTurn() {
-        return movedLastTurn;
-    }
-
-    public boolean hasMoved() {
-        return hasMoved;
-    }
-
-    public void setHasMoved(boolean hasMoved) {
-        this.hasMoved = hasMoved;
     }
 
     public void setSquare(Square curSquare) {

@@ -12,14 +12,12 @@ public class Chessboard {
     // rows and cols grow down and right
     private final Square[] board;
     private final ArrayList<Piece> pieces;
-    private Optional<Piece> lastCapturedPiece;
 
     public Chessboard() {
         NUM_COLS = NUM_ROWS = 8;
 
         board = new Square[NUM_COLS * NUM_ROWS];
         pieces = new ArrayList<>();
-        lastCapturedPiece = Optional.empty();
 
         for (int row = 0; row < NUM_ROWS; row++) {
             for (int col = 0; col < NUM_COLS; col++) {
@@ -36,7 +34,6 @@ public class Chessboard {
 
         board = new Square[NUM_COLS * NUM_ROWS];
         pieces = new ArrayList<>();
-        lastCapturedPiece = Optional.empty();
 
         for (int row = 0; row < NUM_ROWS; row++) {
             for (int col = 0; col < NUM_COLS; col++) {
@@ -69,20 +66,21 @@ public class Chessboard {
         Square end = squareAt(move.getFinalRow(), move.getFinalCol());
 
         movePiece(start, end);
+        pieces.remove(end.getPiece().get());
+
         Color color = move.getColor();
-        Piece piece;
+        Piece newPiece;
 
         switch (move.getPromotionType()) {
-            case BISHOP -> piece = new Bishop(color);
-            case ROOK -> piece = new Rook(color);
-            case KNIGHT -> piece = new Knight(color);
-            case QUEEN -> piece = new Queen(color);
+            case BISHOP -> newPiece = new Bishop(color);
+            case ROOK -> newPiece = new Rook(color);
+            case KNIGHT -> newPiece = new Knight(color);
+            case QUEEN -> newPiece = new Queen(color);
             default -> throw new RuntimeException("No promotion type specified."); //TODO make some exceptions
         }
 
-        pieces.add(piece);
-        pieces.remove(move.getMovingPiece());
-        setPieceAt(end, piece);
+        pieces.add(newPiece);
+        setPieceAt(end, newPiece);
     }
 
     private void enPassant(Move move) {
@@ -96,21 +94,9 @@ public class Chessboard {
     }
 
     private void movePiece(Square start, Square end) {
-        Piece movingPiece = start.getPiece().get();
-        lastCapturedPiece = end.getPiece();
-
+        if (!end.isEmpty()) pieces.remove(end.getPiece().get());
+        setPieceAt(end, start.getPiece().get());
         setPieceAt(start, null);
-        movingPiece.setSquare(end);
-        setPieceAt(end, movingPiece);
-
-        lastCapturedPiece.ifPresent(pieces::remove);
-
-        if (!movingPiece.hasMoved()) {
-            movingPiece.setHasMoved(true);
-            movingPiece.setMovedLastTurn(true);
-        } else {
-            movingPiece.setMovedLastTurn(false);
-        }
     }
 
     public Square getKingLoc(Color color) {
@@ -142,29 +128,28 @@ public class Chessboard {
         return pieceAt(square.getRow(), square.getCol()).get();
     }
 
-    //TODO refactor using StringBuilder
     public String toString() {
 
-        String line = "";
-        String res = "";
+        StringBuilder line = new StringBuilder();
+        StringBuilder res = new StringBuilder();
 
         for (int i = board.length - 1; i >= 0; i--) {
-            line = "|" + board[i].toString(0) + line;
+            line.insert(0, "|" + board[i].toString(0));
 
             if (i % NUM_ROWS == 0) {
-                line += "|\n";
-                res += line;
-                line = "";
+                line.append("|\n");
+                res.append(line);
+                line = new StringBuilder();
             }
         }
 
-        return res;
+        return res.toString();
     }
 
     public String toString(ArrayList<Square> threatMap) {
 
-        String line = "";
-        String res = "";
+        StringBuilder line = new StringBuilder();
+        StringBuilder res = new StringBuilder();
         String output;
 
         for (int i = board.length - 1; i >= 0; i--) {
@@ -173,16 +158,16 @@ public class Chessboard {
             } else {
                 output = "_";
             }
-            line = "|" + output + line;
+            line.insert(0, "|" + output);
 
             if (i % NUM_ROWS == 0) {
-                line += "|\n";
-                res += line;
-                line = "";
+                line.append("|\n");
+                res.append(line);
+                line = new StringBuilder();
             }
         }
 
-        return res;
+        return res.toString();
     }
 
     private void setPieceAt(Square square, Piece piece) {
@@ -203,13 +188,17 @@ public class Chessboard {
 
         // move king
         // white long
-        if (start == squareAt(0, 0)) movePiece(squareAt(0, 4), squareAt(0, 2));
+        if (start == squareAt(0, 0))
+            movePiece(squareAt(0, 4), squareAt(0, 2));
         // white short
-        if (start == squareAt(0, 7)) movePiece(squareAt(0, 4), squareAt(0, 6));
+        if (start == squareAt(0, 7))
+            movePiece(squareAt(0, 4), squareAt(0, 6));
         // black long
-        if (start == squareAt(7, 0)) movePiece(squareAt(7, 4), squareAt(7, 2));
+        if (start == squareAt(7, 0))
+            movePiece(squareAt(7, 4), squareAt(7, 2));
         // black short
-        if (start == squareAt(7, 7)) movePiece(squareAt(7, 4), squareAt(7, 6));
+        if (start == squareAt(7, 7))
+            movePiece(squareAt(7, 4), squareAt(7, 6));
     }
 
     private void initialSetup() {
@@ -255,5 +244,7 @@ public class Chessboard {
         return colorPieces;
     }
 
-
+    public Square[] getBoard() {
+        return board;
+    }
 }

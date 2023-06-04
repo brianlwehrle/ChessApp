@@ -1,6 +1,5 @@
 package com.brianwehrle.chess.models;
 
-import com.brianwehrle.chess.models.pieces.Bishop;
 import com.brianwehrle.chess.models.pieces.Piece;
 
 import java.util.Optional;
@@ -62,57 +61,57 @@ public class Move {
     }
 
     public String toString(int code) {
-        String res = "";
+        String piece = "";
         char startCol = (char)(this.initialCol + 'a');
         String finalRow = String.valueOf(this.finalRow + 1);
         char finalCol = (char)(this.finalCol + 'a');
 
         if (color == Color.BLACK) {
             switch (movingPiece) {
-                case KING -> res = (code == 0 ? "♔" : "K");
-                case QUEEN -> res = (code == 0 ? "♕" : "Q");
-                case ROOK -> res = (code == 0 ? "♖" : "R");
-                case BISHOP -> res = (code == 0 ? "♗" : "B");
-                case KNIGHT -> res = (code == 0 ? "♘" : "N");
-                case PAWN -> res += (code == 0 ? "♙" : startCol);
-                default -> res = "Piece not associated with a type?";
+                case KING -> piece = (code == 0 ? "♔" : "K");
+                case QUEEN -> piece = (code == 0 ? "♕" : "Q");
+                case ROOK -> piece = (code == 0 ? "♖" : "R");
+                case BISHOP -> piece = (code == 0 ? "♗" : "B");
+                case KNIGHT -> piece = (code == 0 ? "♘" : "N");
+                case PAWN -> piece += (code == 0 ? "♙" : startCol);
+                default -> piece = "Piece not associated with a type?";
             }
         } else {
             switch (movingPiece) {
-                case KING -> res = (code == 0 ? "♚" : "K");
-                case QUEEN -> res = (code == 0 ? "♛" : "Q");
-                case ROOK -> res = (code == 0 ? "♜" : "R");
-                case BISHOP -> res = (code == 0 ? "♝" : "B");
-                case KNIGHT -> res = (code == 0 ? "♞" : "N");
-                case PAWN -> res += (code == 0 ? "♟" : startCol);
-                default -> res = "Piece not associated with a type?";
+                case KING -> piece = (code == 0 ? "♚" : "K");
+                case QUEEN -> piece = (code == 0 ? "♛" : "Q");
+                case ROOK -> piece = (code == 0 ? "♜" : "R");
+                case BISHOP -> piece = (code == 0 ? "♝" : "B");
+                case KNIGHT -> piece = (code == 0 ? "♞" : "N");
+                case PAWN -> piece += (code == 0 ? "♟" : startCol);
+                default -> piece = "Piece not associated with a type?";
             }
         }
 
         if (movingPiece == Piece.PieceType.PAWN) {
             if (moveType == MoveType.EN_PASSANT) {
-                return (char) startCol + "x" + finalCol + finalRow;
+                return startCol + "x" + finalCol + finalRow;
             }
             if (capturedPiece.isPresent()) { // capture
-                res = startCol + "x" + finalCol + finalRow;
+                piece = startCol + "x" + finalCol + finalRow;
             } else { // move
-                res = startCol+ finalRow;
+                piece = startCol+ finalRow;
             }
             if (promotionType != null) {
                 switch (promotionType) {
-                    case BISHOP -> res += "=B";
-                    case QUEEN -> res += "=Q";
-                    case ROOK -> res += "=R";
-                    case KNIGHT -> res += "=N";
+                    case BISHOP -> piece += "=B";
+                    case QUEEN -> piece += "=Q";
+                    case ROOK -> piece += "=R";
+                    case KNIGHT -> piece += "=N";
                 }
             }
 
-            return res;
+            return piece;
         }
 
         // capture
         if (capturedPiece.isPresent()) {
-            return res + "x" + finalCol + finalRow;
+            return piece + "x" + finalCol + finalRow;
         }
 
         // long castle
@@ -125,7 +124,7 @@ public class Move {
             return "O-O";
         }
 
-        return res + finalCol + finalRow;
+        return piece + finalCol + finalRow;
     }
 
     public int getInitialRow() {

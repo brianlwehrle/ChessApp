@@ -45,4 +45,11 @@ public class Square {
     public String toString(int code) {
         return piece.map(p -> p.toString(code)).orElse("\u2003");
     }
+
+    public String getNotation() {
+        char file = (char)(col + 'a');
+        String rank = String.valueOf(row + 1);
+
+        return file + rank;
+    }
 }
