@@ -143,7 +143,7 @@ public class Move {
         return finalCol;
     }
 
-    public MoveType getMoveType() {
+    public MoveType moveType() {
         return moveType;
     }
 

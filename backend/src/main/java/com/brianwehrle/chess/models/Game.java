@@ -2,68 +2,127 @@ package com.brianwehrle.chess.models;
 
 import com.brianwehrle.chess.models.pieces.Piece;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Scanner;
+import java.util.*;
 
 public class Game {
 
+    public enum GameStatus {
+        BLACK_TO_MOVE,
+        WHITE_TO_MOVE,
+        VICTORY_WHITE,
+        VICTORY_BLACK,
+        STALEMATE,
+        DRAW,
+        INVALID_MOVE
+    }
+
+    private final UUID gameId;
     private Chessboard board;
     private final Player whitePlayer, blackPlayer;
     private Player currentPlayer;
+    private GameStatus status;
     private final ArrayList<Move> prevMoves;
+    private ArrayList<Move> legalMoves;
     private final HashMap<String, Integer> positionCounts;
     private int moveNumber;
     private int halfMoveNumber;
 
 
+
     public Game(Player whitePlayer, Player blackPlayer) {
+        gameId = UUID.randomUUID();
         this.whitePlayer = whitePlayer;
         this.blackPlayer = blackPlayer;
         whitePlayer.setColor(Color.WHITE);
         blackPlayer.setColor(Color.BLACK);
         board = new Chessboard();
         currentPlayer = whitePlayer;
+        status = GameStatus.WHITE_TO_MOVE;
         prevMoves = new ArrayList<>();
+        legalMoves = new ArrayList<>();
         positionCounts = new HashMap<>();
         moveNumber = 1;
         halfMoveNumber = 0;
     }
 
-    //TODO load from fen
-    // Load Game
-//    public Game(ArrayList<Move> moveList) {
-//        this.whitePlayer = whitePlayer;
-//        this.blackPlayer = blackPlayer;
-//        board = new Chessboard(moveList);
-//        currentPlayer.getColor() = Color.WHITE;
-//        prevMoves = moveList;
-//    }
+//TODO load from fen
 
-    public void run() {
-        ArrayList<Move> possibleMoves;
+    // move is a legal move
+    // updates the status of the game after the move is made
+    public void makeMove(Move move) {
+        setCastleFlag(move);
+        setEnPassantSquare(move);
 
-        // Game loop
-        while (true) {
-            System.out.println(board);
+        board.move(move);
+        prevMoves.add(move);
 
-            possibleMoves = getPossibleMoves(currentPlayer.getColor());
-            removeIllegalMoves(possibleMoves);
+        if (currentPlayer == blackPlayer) moveNumber++;
+        // track half move number for 50 move rule
+        if (move.getMovingPiece() == Piece.PieceType.PAWN || move.getCapturedPiece().isPresent())
+            halfMoveNumber = 0;
+        else
+            halfMoveNumber += 1;
 
-            if (gameOver(possibleMoves)) return;
+        // switch player
+        currentPlayer = (currentPlayer == whitePlayer ? blackPlayer : whitePlayer);
 
-            makeMove(getUserInput(possibleMoves));
-            if (isDraw()) return;
+        storeFenPosition();
 
-            currentPlayer = (currentPlayer == whitePlayer ? blackPlayer : whitePlayer);
+        legalMoves = calculateLegalMoves();
+
+        updateStatus();
+    }
+
+    public boolean isLegalMove(Move move) {
+        return legalMoves.contains(move);
+    }
+
+    public UUID getGameId() {
+        return gameId;
+    }
+
+    public GameStatus getStatus() {
+        return status;
+    }
+
+    public String getFen() {
+        return convertToFen();
+    }
+
+    public static Move convertToMove(String notationMove) {
+        return null;
+    }
+
+    private void updateStatus() {
+        if (legalMoves.isEmpty()) {
+            if (isInCheck(currentPlayer.getColor())) {
+                //checkmate
+                status = (currentPlayer.getColor() == Color.WHITE ? GameStatus.VICTORY_BLACK : GameStatus.VICTORY_WHITE);
+            } else {
+                status = GameStatus.STALEMATE;
+            }
+        } else if (isDraw()){
+            status = GameStatus.DRAW;
+        } else {
+            status = (currentPlayer.getColor() == Color.WHITE ? GameStatus.WHITE_TO_MOVE : GameStatus.BLACK_TO_MOVE);
         }
+    }
+
+    private ArrayList<Move> calculateLegalMoves() {
+        legalMoves = getPossibleMoves(currentPlayer.getColor());
+        removeIllegalMoves(legalMoves);
+        return legalMoves;
+    }
+
+    private void storeFenPosition() {
+        String fen = convertToFen();
+        String fenPosition = fen.substring(0, fen.indexOf(" "));
+        positionCounts.put(fenPosition, positionCounts.getOrDefault(fenPosition, 0) + 1);
     }
 
     private boolean isDraw() {
         // 3 move repetition
-        String position = storePosition();
-        if (positionCounts.get(position) >= 3) {
+        if (positionCounts.get(this.convertToFen()) >= 3) {
             System.out.println("Draw by 3 move repetition!");
             return true;
         }
@@ -73,46 +132,13 @@ public class Game {
             System.out.println("Draw by 50 move rule!");
             return true;
         }
+
         return false;
     }
 
-    private Move getUserInput(ArrayList<Move> possibleMoves) {
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.println(currentPlayer.getColor() + " to move: ");
-        for (int i = 1; i <= possibleMoves.size(); i++) {
-            System.out.println(i + ") " + possibleMoves.get(i - 1).toString(0) + " ");
-        }
-
-        return possibleMoves.get(Integer.parseInt(scanner.next()) - 1);
-    }
-
-    private String storePosition() {
-        String fen = convertToFen();
-        String fenPosition = fen.substring(0, fen.indexOf(" "));
-        positionCounts.put(fenPosition, positionCounts.getOrDefault(fenPosition, 0) + 1);
-
-        return fenPosition;
-    }
-
-    private void makeMove(Move move) {
-        setCastleFlag(move);
-
-        setEnPassantSquare(move);
-
-        // track half move number for 50 move rule
-        if (move.getMovingPiece() == Piece.PieceType.PAWN || move.getCapturedPiece().isPresent())
-            halfMoveNumber = 0;
-        else
-            halfMoveNumber += 1;
-
-        board.move(move);
-        prevMoves.add(move);
-        if (currentPlayer == blackPlayer) moveNumber++;
-    }
-
+    // adjusts the castle rights flag in Player if a rook or king moves
     private void setCastleFlag(Move move) {
-        if (move.getMovingPiece() == Piece.PieceType.KING || move.getMoveType() == Move.MoveType.CASTLE) {
+        if (move.getMovingPiece() == Piece.PieceType.KING || move.moveType() == Move.MoveType.CASTLE) {
             currentPlayer.setCastle(false, false);
         } else if (move.getMovingPiece() == Piece.PieceType.ROOK && move.getInitialCol() == 0) { // queenside
             currentPlayer.setCastle(false, true);
@@ -121,8 +147,9 @@ public class Game {
         }
     }
 
+    // sets the square available for En Passant in Player
     private void setEnPassantSquare(Move move) {
-        if (move.getMoveType() == Move.MoveType.DOUBLE) {
+        if (move.moveType() == Move.MoveType.DOUBLE) {
             char col = (char)(move.getInitialCol() + 'a');
             int row = (currentPlayer.getColor() == Color.WHITE ? 3 : 6);
             currentPlayer.setEnPassantSquare(col + String.valueOf(row));
@@ -233,6 +260,8 @@ public class Game {
                 nextSquare = board.squareAt(start.getRow() + direction.dy() * scalar, start.getCol() + direction.dx() * scalar);
             }
         }
+
+        //TODO could switch castling to king
         //castling
         Square finalSquare = canCastle(piece);
         if (piece.getType() == Piece.PieceType.ROOK && finalSquare != null)
@@ -294,12 +323,11 @@ public class Game {
         // simulate each move and see if my king would be in check
         Chessboard tempBoard = board;
         for (Iterator<Move> iterator = possibleMoves.iterator(); iterator.hasNext(); ) {
-            Move move = iterator.next();
             board = new Chessboard(prevMoves);
-            board.move(move);
-            if (isInCheck(currentPlayer.getColor())) {
+            board.move(iterator.next());
+
+            if (isInCheck(currentPlayer.getColor()))
                 iterator.remove();
-            }
         }
         board = tempBoard;
     }
@@ -354,23 +382,11 @@ public class Game {
         return null;
     }
 
-    private boolean gameOver(ArrayList<Move> legalMoves) {
-        if (legalMoves.isEmpty()) {
-            if (isInCheck(currentPlayer.getColor())) {
-                System.out.println(currentPlayer.getColor() == Color.WHITE ? Color.BLACK : Color.WHITE + " wins!");
-            } else {
-                System.out.println("Stalemate!");
-            }
-            return true;
-        }
-        return false;
-    }
-
     private Player otherPlayer() {
         return (currentPlayer == whitePlayer ? blackPlayer : whitePlayer);
     }
 
-    public String convertToFen() {
+    private String convertToFen() {
         StringBuilder fen = new StringBuilder();
         int emptySquares = 0;
         String letter = "";

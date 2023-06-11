@@ -49,7 +49,7 @@ public class Chessboard {
     }
 
     public void move(Move move) {
-        switch (move.getMoveType()) {
+        switch (move.moveType()) {
             case STANDARD, DOUBLE -> movePiece(squareAt(move.getInitialRow(), move.getInitialCol()), squareAt(move.getFinalRow(), move.getFinalCol()));
             case CASTLE -> castle(move);
             case EN_PASSANT -> enPassant(move);
@@ -80,7 +80,7 @@ public class Chessboard {
         }
 
         pieces.add(newPiece);
-        setPieceAt(end, newPiece);
+        setPiece(end, newPiece);
     }
 
     private void enPassant(Move move) {
@@ -89,14 +89,16 @@ public class Chessboard {
 
         movePiece(start, end);
 
-        setPieceAt(move.getCapturedPiece().get().square(), null);
+        setPiece(move.getCapturedPiece().get().square(), null);
         pieces.remove(move.getCapturedPiece().get());
     }
 
     private void movePiece(Square start, Square end) {
-        if (!end.isEmpty()) pieces.remove(end.getPiece().get());
-        setPieceAt(end, start.getPiece().get());
-        setPieceAt(start, null);
+        if (!end.isEmpty())
+            pieces.remove(end.getPiece().get());
+
+        setPiece(end, start.getPiece().get());
+        setPiece(start, null);
     }
 
     public Square getKingLoc(Color color) {
@@ -170,7 +172,7 @@ public class Chessboard {
         return res.toString();
     }
 
-    private void setPieceAt(Square square, Piece piece) {
+    private void setPiece(Square square, Piece piece) {
         if (piece != null) {
             piece.setSquare(square);
             square.setPiece(piece);
@@ -204,8 +206,8 @@ public class Chessboard {
     private void initialSetup() {
         // Pawns
         for (int i = 0; i < 8; i++) {
-            setPieceAt(squareAt(1, i), new Pawn(Color.WHITE));
-            setPieceAt(squareAt(6, i), new Pawn(Color.BLACK));
+            setPiece(squareAt(1, i), new Pawn(Color.WHITE));
+            setPiece(squareAt(6, i), new Pawn(Color.BLACK));
 
             pieces.add(pieceAt(1, i).get());
             pieces.add(pieceAt(6, i).get());
@@ -216,14 +218,14 @@ public class Chessboard {
     }
 
     private void setUpKingRow(int row, Color color) {
-        setPieceAt(squareAt(row, 0), new Rook(color));
-        setPieceAt(squareAt(row, 1), new Knight(color));
-        setPieceAt(squareAt(row, 2), new Bishop(color));
-        setPieceAt(squareAt(row, 3), new Queen(color));
-        setPieceAt(squareAt(row, 4), new King(color));
-        setPieceAt(squareAt(row, 5), new Bishop(color));
-        setPieceAt(squareAt(row, 6), new Knight(color));
-        setPieceAt(squareAt(row, 7), new Rook(color));
+        setPiece(squareAt(row, 0), new Rook(color));
+        setPiece(squareAt(row, 1), new Knight(color));
+        setPiece(squareAt(row, 2), new Bishop(color));
+        setPiece(squareAt(row, 3), new Queen(color));
+        setPiece(squareAt(row, 4), new King(color));
+        setPiece(squareAt(row, 5), new Bishop(color));
+        setPiece(squareAt(row, 6), new Knight(color));
+        setPiece(squareAt(row, 7), new Rook(color));
 
         for (int i = 0; i < 8; i++) {
             pieces.add(pieceAt(row, i).get());

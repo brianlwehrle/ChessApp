@@ -1,6 +1,7 @@
 package com.brianwehrle.chess;
 
 import com.brianwehrle.chess.models.*;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,9 +15,9 @@ public class ChessApplication {
 		Player player2 = new Player("Player2");
 		Game game = new Game(player1, player2);
 
-		game.run();
+		//game.run();
 
-		//SpringApplication.run(ChessApplication.class, args);
+		SpringApplication.run(ChessApplication.class, args);
 	}
 
 	@GetMapping("/")
