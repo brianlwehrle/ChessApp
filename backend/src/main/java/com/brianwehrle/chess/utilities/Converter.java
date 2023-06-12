@@ -9,7 +9,7 @@ import java.util.ArrayList;
     Handles various notation conversion functions, such as converting from PGN,
     fen, etc. to Move/List of Moves and vice versa
  */
-public class Convert {
+public class Converter {
 
     public static String moveToAlgebraic(Move move, int code) {
         String piece = "";

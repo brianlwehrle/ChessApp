@@ -89,10 +89,6 @@ public class Game {
         return convertToFen();
     }
 
-    public static Move convertToMove(String notationMove) {
-        return null;
-    }
-
     private void updateStatus() {
         if (legalMoves.isEmpty()) {
             if (isInCheck(currentPlayer.getColor())) {
@@ -199,7 +195,7 @@ public class Game {
                         for (int scalar = 2; nextSquare != null; scalar++) {
                             threatMap.add(nextSquare);
 
-                            if (nextSquare.getPiece().isPresent()) break;
+                            if (nextSquare.getPiece() != null) break;
 
                             // knights have no scalars
                             if (piece.getType() == Piece.PieceType.KNIGHT) break;
@@ -233,7 +229,7 @@ public class Game {
                 Square nextSquare = board.squareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
 
                 if (nextSquare != null) { // is in bounds
-                    if (nextSquare.isEmpty() || piece.differentColor(nextSquare.getPiece().get()))
+                    if (nextSquare.isEmpty() || piece.differentColor(nextSquare.getPiece()))
                         moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare));
                 }
             }
@@ -247,7 +243,7 @@ public class Game {
             for (int scalar = 2; nextSquare != null; scalar++) {
                 if (nextSquare.isEmpty()) {
                     moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare));
-                } else if (piece.differentColor(nextSquare.getPiece().get())) {
+                } else if (piece.differentColor(nextSquare.getPiece())) {
                     moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare));
                     break;
                 } else {
@@ -298,7 +294,7 @@ public class Game {
                     moves.add(new Move(piece.getType(), Move.MoveType.EN_PASSANT, start, nextSquare));
                 }
 
-                if (!nextSquare.isEmpty() && piece.differentColor(nextSquare.getPiece().get())) {
+                if (!nextSquare.isEmpty() && piece.differentColor(nextSquare.getPiece())) {
                     if (nextSquare.getRow() == 0 || nextSquare.getRow() == 7) {
                         addPromotions(moves, start, nextSquare); // promotion
                     } else {
@@ -310,10 +306,10 @@ public class Game {
     }
 
     private void addPromotions(ArrayList<Move> moves, Square start, Square nextSquare) {
-        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION, Piece.PieceType.KNIGHT, start, nextSquare));
-        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION, Piece.PieceType.BISHOP, start, nextSquare));
-        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION, Piece.PieceType.ROOK, start, nextSquare));
-        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION, Piece.PieceType.QUEEN, start, nextSquare));
+        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION_KNIGHT, start, nextSquare));
+        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION_BISHOP, start, nextSquare));
+        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION_ROOK, start, nextSquare));
+        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION_QUEEN, start, nextSquare));
     }
 
     // any moves that allow your king to be in check
@@ -398,7 +394,7 @@ public class Game {
                     fen.append(emptySquares);
                     emptySquares = 0;
                 }
-                switch (board.getBoard()[i].getPiece().get().getType()) {
+                switch (board.getBoard()[i].getPiece().getType()) {
                     case BISHOP -> letter = "B";
                     case QUEEN -> letter = "Q";
                     case ROOK -> letter = "R";
@@ -406,7 +402,7 @@ public class Game {
                     case KING -> letter = "K";
                     case KNIGHT -> letter = "N";
                 }
-                if (board.getBoard()[i].getPiece().get().getColor() == Color.BLACK)
+                if (board.getBoard()[i].getPiece().getColor() == Color.BLACK)
                     letter = letter.toLowerCase();
 
                 fen.append(letter);

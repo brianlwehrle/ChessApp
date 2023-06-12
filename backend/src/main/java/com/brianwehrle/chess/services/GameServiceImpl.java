@@ -3,6 +3,7 @@ package com.brianwehrle.chess.services;
 import com.brianwehrle.chess.models.Game;
 import com.brianwehrle.chess.models.Game.GameStatus;
 import com.brianwehrle.chess.models.Move;
+import com.brianwehrle.chess.utilities.Converter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -17,14 +18,15 @@ public class GameServiceImpl implements GameService {
     public void startNewGame() {
 
     }
+
     @Override
     public String getFen() {
         return game.getFen();
     }
 
     @Override
-    public GameStatus makeMove(String notationMove) {
-        Move move  = Game.convertToMove(notationMove);
+    public GameStatus makeMove(String algebraicMove) {
+        Move move  = Converter.algebraicToMove(algebraicMove);
 
         if (game.isLegalMove(move)) {
             game.makeMove(move);

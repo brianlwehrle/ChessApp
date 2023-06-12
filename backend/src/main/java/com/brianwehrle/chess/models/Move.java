@@ -1,9 +1,7 @@
 package com.brianwehrle.chess.models;
 
 import com.brianwehrle.chess.models.pieces.Piece;
-import com.brianwehrle.chess.utilities.Convert;
-
-import java.util.Optional;
+import com.brianwehrle.chess.utilities.Converter;
 
 public class Move {
 
@@ -12,10 +10,12 @@ public class Move {
         CAPTURE,
         EN_PASSANT,
         CASTLE,
-        PROMOTION
+        PROMOTION_KNIGHT,
+        PROMOTION_BISHOP,
+        PROMOTION_ROOK,
+        PROMOTION_QUEEN
     }
 
-    //private final Square start, end;
     private final int initialRow, initialCol, finalRow, finalCol;
     private final MoveType moveType;
     private final Piece.PieceType typeOfPiece;
@@ -31,19 +31,8 @@ public class Move {
         promotionType = null;
     }
 
-    // promotion
-    public Move (Piece.PieceType typeOfPiece, MoveType moveType, Piece.PieceType promotionType, Square start, Square end) {
-        initialRow = start.getRow();
-        initialCol = start.getCol();
-        finalRow = end.getRow();
-        finalCol = end.getCol();
-        this.moveType = moveType;
-        this.typeOfPiece = typeOfPiece;
-        this.promotionType = promotionType;
-    }
-
     public String toString(int code) {
-        return Convert.moveToAlgebraic(this, code);
+        return Converter.moveToAlgebraic(this, code);
     }
 
     public int getInitialRow() {

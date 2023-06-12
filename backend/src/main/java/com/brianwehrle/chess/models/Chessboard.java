@@ -28,7 +28,7 @@ public class Chessboard {
         initialSetup();
     }
 
-    //load position
+    // load position
     public Chessboard(ArrayList<Move> moveList) {
         NUM_COLS = NUM_ROWS = 8;
 
@@ -53,7 +53,7 @@ public class Chessboard {
             case STANDARD -> movePiece(squareAt(move.getInitialRow(), move.getInitialCol()), squareAt(move.getFinalRow(), move.getFinalCol()));
             case CASTLE -> castle(move);
             case EN_PASSANT -> enPassant(move);
-            case PROMOTION -> promote(move);
+            case PROMOTION_KNIGHT, PROMOTION_BISHOP, PROMOTION_ROOK, PROMOTION_QUEEN -> promote(move);
             default -> {
                 System.out.println("Invalid move");
                 System.exit(1);
@@ -64,10 +64,10 @@ public class Chessboard {
     private void promote(Move move) {
         Square start = squareAt(move.getInitialRow(), move.getInitialCol());
         Square end = squareAt(move.getFinalRow(), move.getFinalCol());
-        Color color = start.getPiece().get().getColor();
+        Color color = start.getPiece().getColor();
 
         movePiece(start, end);
-        pieces.remove(end.getPiece().get());
+        pieces.remove(end.getPiece());
 
         Piece newPiece;
 
@@ -86,20 +86,20 @@ public class Chessboard {
     private void enPassant(Move move) {
         Square start = squareAt(move.getInitialRow(), move.getInitialCol());
         Square end = squareAt(move.getFinalRow(), move.getFinalCol());
-        Color color = start.getPiece().get().getColor();
+        Color color = start.getPiece().getColor();
 
         movePiece(start, end);
 
         Square capturedPawnSquare = squareAt(end.getCol(), end.getRow() - (color == Color.WHITE ? 1 : -1));
-        pieces.remove(capturedPawnSquare.getPiece().get());
+        pieces.remove(capturedPawnSquare.getPiece());
         setPiece(capturedPawnSquare, null);
     }
 
     private void movePiece(Square start, Square end) {
         if (!end.isEmpty())
-            pieces.remove(end.getPiece().get());
+            pieces.remove(end.getPiece());
 
-        setPiece(end, start.getPiece().get());
+        setPiece(end, start.getPiece());
         setPiece(start, null);
     }
 
@@ -124,12 +124,8 @@ public class Chessboard {
         return board[row * NUM_COLS + col];
     }
 
-    public Optional<Piece> pieceAt(int row, int col) {
+    public Piece pieceAt(int row, int col) {
         return squareAt(row, col).getPiece();
-    }
-
-    public Piece pieceAt(Square square) {
-        return pieceAt(square.getRow(), square.getCol()).get();
     }
 
     public String toString() {
@@ -211,8 +207,8 @@ public class Chessboard {
             setPiece(squareAt(1, i), new Pawn(Color.WHITE));
             setPiece(squareAt(6, i), new Pawn(Color.BLACK));
 
-            pieces.add(pieceAt(1, i).get());
-            pieces.add(pieceAt(6, i).get());
+            pieces.add(pieceAt(1, i));
+            pieces.add(pieceAt(6, i));
         }
 
         setUpKingRow(0, Color.WHITE);
@@ -230,7 +226,7 @@ public class Chessboard {
         setPiece(squareAt(row, 7), new Rook(color));
 
         for (int i = 0; i < 8; i++) {
-            pieces.add(pieceAt(row, i).get());
+            pieces.add(pieceAt(row, i));
         }
     }
 
