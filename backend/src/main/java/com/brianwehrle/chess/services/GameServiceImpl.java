@@ -6,7 +6,6 @@ import com.brianwehrle.chess.models.Move;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.UUID;
 
 @Qualifier("GameServiceImpl")
@@ -15,6 +14,9 @@ public class GameServiceImpl implements GameService {
 
     private Game game;
 
+    public void startNewGame() {
+
+    }
     @Override
     public String getFen() {
         return game.getFen();
@@ -34,6 +36,6 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public UUID getGameId() {
-        return null;
+        return game.getGameId();
     }
 }

@@ -18,7 +18,7 @@ public class Pawn extends Piece {
     public ArrayList<Direction> getDirections() {
         int dy = (color == Color.WHITE ? 1 : -1);
 
-        if (square.getRow() == 1 || square.getRow() == 6) {
+        if (square.getRow() == 1  || square.getRow() == 6) {
             return new ArrayList<>(Arrays.asList(
                     new Direction(0, dy),
                     new Direction(0, dy * 2)

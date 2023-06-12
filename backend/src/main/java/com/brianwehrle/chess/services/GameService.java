@@ -12,4 +12,6 @@ public interface GameService {
     public Game.GameStatus makeMove(String move);
 
     public UUID getGameId();
+
+    void startNewGame();
 }

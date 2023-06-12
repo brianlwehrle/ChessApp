@@ -21,7 +21,7 @@ public class Game {
     private final Player whitePlayer, blackPlayer;
     private Player currentPlayer;
     private GameStatus status;
-    private final ArrayList<Move> prevMoves;
+    private final ArrayList<Move> moveHistory;
     private ArrayList<Move> legalMoves;
     private final HashMap<String, Integer> positionCounts;
     private int moveNumber;
@@ -38,7 +38,7 @@ public class Game {
         board = new Chessboard();
         currentPlayer = whitePlayer;
         status = GameStatus.WHITE_TO_MOVE;
-        prevMoves = new ArrayList<>();
+        moveHistory = new ArrayList<>();
         legalMoves = new ArrayList<>();
         positionCounts = new HashMap<>();
         moveNumber = 1;
@@ -54,11 +54,11 @@ public class Game {
         setEnPassantSquare(move);
 
         board.move(move);
-        prevMoves.add(move);
+        moveHistory.add(move);
 
         if (currentPlayer == blackPlayer) moveNumber++;
         // track half move number for 50 move rule
-        if (move.getMovingPiece() == Piece.PieceType.PAWN || move.getCapturedPiece().isPresent())
+        if (move.getTypeOfPiece() == Piece.PieceType.PAWN || move.moveType() == Move.MoveType.CAPTURE)
             halfMoveNumber = 0;
         else
             halfMoveNumber += 1;
@@ -138,18 +138,18 @@ public class Game {
 
     // adjusts the castle rights flag in Player if a rook or king moves
     private void setCastleFlag(Move move) {
-        if (move.getMovingPiece() == Piece.PieceType.KING || move.moveType() == Move.MoveType.CASTLE) {
+        if (move.getTypeOfPiece() == Piece.PieceType.KING || move.moveType() == Move.MoveType.CASTLE) {
             currentPlayer.setCastle(false, false);
-        } else if (move.getMovingPiece() == Piece.PieceType.ROOK && move.getInitialCol() == 0) { // queenside
+        } else if (move.getTypeOfPiece() == Piece.PieceType.ROOK && move.getInitialCol() == 0) { // queenside
             currentPlayer.setCastle(false, true);
-        } else if (move.getMovingPiece() == Piece.PieceType.ROOK && move.getInitialCol() == 7) { // kingside
+        } else if (move.getTypeOfPiece() == Piece.PieceType.ROOK && move.getInitialCol() == 7) { // kingside
             currentPlayer.setCastle(true, false);
         }
     }
 
     // sets the square available for En Passant in Player
     private void setEnPassantSquare(Move move) {
-        if (move.moveType() == Move.MoveType.DOUBLE) {
+        if (move.getTypeOfPiece() == Piece.PieceType.PAWN && Math.abs(move.getFinalRow() - move.getInitialRow()) == 2) {
             char col = (char)(move.getInitialCol() + 'a');
             int row = (currentPlayer.getColor() == Color.WHITE ? 3 : 6);
             currentPlayer.setEnPassantSquare(col + String.valueOf(row));
@@ -234,7 +234,7 @@ public class Game {
 
                 if (nextSquare != null) { // is in bounds
                     if (nextSquare.isEmpty() || piece.differentColor(nextSquare.getPiece().get()))
-                        moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare, currentPlayer.getColor()));
+                        moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare));
                 }
             }
     }
@@ -246,9 +246,9 @@ public class Game {
 
             for (int scalar = 2; nextSquare != null; scalar++) {
                 if (nextSquare.isEmpty()) {
-                    moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare, currentPlayer.getColor()));
+                    moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare));
                 } else if (piece.differentColor(nextSquare.getPiece().get())) {
-                    moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare, currentPlayer.getColor()));
+                    moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare));
                     break;
                 } else {
                     break;
@@ -265,7 +265,7 @@ public class Game {
         //castling
         Square finalSquare = canCastle(piece);
         if (piece.getType() == Piece.PieceType.ROOK && finalSquare != null)
-            moves.add(new Move(piece.getType(), Move.MoveType.CASTLE, piece.square(), finalSquare, currentPlayer.getColor()));
+            moves.add(new Move(piece.getType(), Move.MoveType.CASTLE, piece.square(), finalSquare));
     }
 
     private void addPawnMoves(Piece piece, Square start, ArrayList<Move> moves) {
@@ -275,12 +275,12 @@ public class Game {
             Square nextSquare = board.squareAt(start.getRow() + dy, start.getCol());
             if (nextSquare != null && nextSquare.isEmpty()) {
                 if (Math.abs(dy) == 2) {
-                    moves.add(new Move(piece.getType(), Move.MoveType.DOUBLE, start, nextSquare, currentPlayer.getColor()));
+                    moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare));
                 } else {
                     if (nextSquare.getRow() == 0 || nextSquare.getRow() == 7) { // promotion
                         addPromotions(moves, start, nextSquare);
                     } else {
-                        moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare, currentPlayer.getColor()));
+                        moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare));
                     }
                 }
             } else {
@@ -295,15 +295,14 @@ public class Game {
             if (nextSquare != null) {
                 // en passant
                 if (nextSquare.getNotation().equals(otherPlayer().getEnPassantSquare())) {
-                    Piece capturedPawn = board.pieceAt(board.squareAt(nextSquare.getRow() - dy, nextSquare.getCol()));
-                    moves.add(new Move(piece.getType(), Move.MoveType.EN_PASSANT, start, nextSquare, capturedPawn, currentPlayer.getColor()));
+                    moves.add(new Move(piece.getType(), Move.MoveType.EN_PASSANT, start, nextSquare));
                 }
 
                 if (!nextSquare.isEmpty() && piece.differentColor(nextSquare.getPiece().get())) {
                     if (nextSquare.getRow() == 0 || nextSquare.getRow() == 7) {
                         addPromotions(moves, start, nextSquare); // promotion
                     } else {
-                        moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare, currentPlayer.getColor()));
+                        moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare));
                     }
                 }
             }
@@ -311,10 +310,10 @@ public class Game {
     }
 
     private void addPromotions(ArrayList<Move> moves, Square start, Square nextSquare) {
-        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION, Piece.PieceType.KNIGHT, start, nextSquare, currentPlayer.getColor()));
-        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION, Piece.PieceType.BISHOP, start, nextSquare, currentPlayer.getColor()));
-        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION, Piece.PieceType.ROOK, start, nextSquare, currentPlayer.getColor()));
-        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION, Piece.PieceType.QUEEN, start, nextSquare, currentPlayer.getColor()));
+        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION, Piece.PieceType.KNIGHT, start, nextSquare));
+        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION, Piece.PieceType.BISHOP, start, nextSquare));
+        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION, Piece.PieceType.ROOK, start, nextSquare));
+        moves.add(new Move(Piece.PieceType.PAWN, Move.MoveType.PROMOTION, Piece.PieceType.QUEEN, start, nextSquare));
     }
 
     // any moves that allow your king to be in check
@@ -323,7 +322,7 @@ public class Game {
         // simulate each move and see if my king would be in check
         Chessboard tempBoard = board;
         for (Iterator<Move> iterator = possibleMoves.iterator(); iterator.hasNext(); ) {
-            board = new Chessboard(prevMoves);
+            board = new Chessboard(moveHistory);
             board.move(iterator.next());
 
             if (isInCheck(currentPlayer.getColor()))

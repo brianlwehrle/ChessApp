@@ -16,20 +16,25 @@ public class GameController {
     @Qualifier("GameServiceImpl")
     private GameService gameService;
 
+    @PostMapping("/newGame")
+    public ResponseEntity startNewGame() {
+        gameService.startNewGame();
+        return ResponseEntity.ok("ok");
+    }
+
     @GetMapping("/getFen")
     public ResponseEntity<String> getFen() {
         return new ResponseEntity<>(gameService.getFen(), HttpStatus.OK);
     }
 
-    @PostMapping("/makeMove/{move}")
+    @PostMapping("/makeMove")
     public ResponseEntity<?> makeMove(@RequestBody String move) {
         Game.GameStatus tryMove = gameService.makeMove(move);
 
         if (tryMove == Game.GameStatus.INVALID_MOVE) {
-            String errorMessage = "Invalid move. Please try again.";
-            return ResponseEntity.badRequest().body(errorMessage);
+            return ResponseEntity.badRequest().body(tryMove.toString());
         } else {
-            return new ResponseEntity<>(HttpStatus.OK);
+            return ResponseEntity.ok(tryMove.toString());
         }
     }
 

@@ -50,7 +50,7 @@ public class Chessboard {
 
     public void move(Move move) {
         switch (move.moveType()) {
-            case STANDARD, DOUBLE -> movePiece(squareAt(move.getInitialRow(), move.getInitialCol()), squareAt(move.getFinalRow(), move.getFinalCol()));
+            case STANDARD -> movePiece(squareAt(move.getInitialRow(), move.getInitialCol()), squareAt(move.getFinalRow(), move.getFinalCol()));
             case CASTLE -> castle(move);
             case EN_PASSANT -> enPassant(move);
             case PROMOTION -> promote(move);
@@ -64,11 +64,11 @@ public class Chessboard {
     private void promote(Move move) {
         Square start = squareAt(move.getInitialRow(), move.getInitialCol());
         Square end = squareAt(move.getFinalRow(), move.getFinalCol());
+        Color color = start.getPiece().get().getColor();
 
         movePiece(start, end);
         pieces.remove(end.getPiece().get());
 
-        Color color = move.getColor();
         Piece newPiece;
 
         switch (move.getPromotionType()) {
@@ -86,11 +86,13 @@ public class Chessboard {
     private void enPassant(Move move) {
         Square start = squareAt(move.getInitialRow(), move.getInitialCol());
         Square end = squareAt(move.getFinalRow(), move.getFinalCol());
+        Color color = start.getPiece().get().getColor();
 
         movePiece(start, end);
 
-        setPiece(move.getCapturedPiece().get().square(), null);
-        pieces.remove(move.getCapturedPiece().get());
+        Square capturedPawnSquare = squareAt(end.getCol(), end.getRow() - (color == Color.WHITE ? 1 : -1));
+        pieces.remove(capturedPawnSquare.getPiece().get());
+        setPiece(capturedPawnSquare, null);
     }
 
     private void movePiece(Square start, Square end) {
