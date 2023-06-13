@@ -56,7 +56,7 @@ public class Move {
         return finalCol;
     }
 
-    public MoveType moveType() {
+    public MoveType getMoveType() {
         return moveType;
     }
 

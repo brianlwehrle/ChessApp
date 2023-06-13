@@ -1,14 +1,15 @@
 package com.brianwehrle.chess.controllers;
 
 import com.brianwehrle.chess.models.Game;
+import com.brianwehrle.chess.models.Move;
 import com.brianwehrle.chess.services.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
-
 @CrossOrigin
 @RestController
 @RequestMapping("/api/v1")
@@ -25,10 +26,8 @@ public class GameController {
     }
 
     @GetMapping("{gameId}/getMoves")
-    public ResponseEntity<?> getMoves(@PathVariable UUID gameId) {
-        String legalMoves = gameService.getLegalMoves(gameId).toString();
-        System.out.println(gameService.getLegalMoves(gameId).toString());
-        return ResponseEntity.ok("Possible moves: " + legalMoves);
+    public ResponseEntity<List<Move>> getMoves(@PathVariable UUID gameId) {
+        return ResponseEntity.ok(gameService.getLegalMoves(gameId));
     }
 
     @PostMapping("{gameId}/makeMove")

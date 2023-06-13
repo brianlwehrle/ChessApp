@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import "./App.css";
-import Board from "./components/Board/Board";
+import "./style/App.css";
+import Board from "./components/Board";
 import GameService from "./services/GameService";
 
 function App() {
@@ -18,7 +18,7 @@ function App() {
 
   const getMovesHandler = () => {
     GameService.getMoves(gameId).then((res) => {
-      console.log("Here are the moves: ", res.data);
+      console.log("Moves", res.data);
     })
       .catch(error => {
         console.error("Error retrieving moves: ", error);
@@ -27,10 +27,10 @@ function App() {
 
   return (
     <div id="app">
+      <p style={{ color: 'red' }}>Game ID: {gameId}</p>
       <Board />
       <button onClick={newGameHandler}>Start New Game</button>
       <button onClick={getMovesHandler}>Get Moves</button>
-      <p style={{ color: 'red' }}>Game ID: {gameId}</p>
     </div>
   );
 }

@@ -62,7 +62,7 @@ public class Game {
 
         if (currentPlayer == blackPlayer) moveNumber++;
         // track half move number for 50 move rule
-        if (move.getTypeOfPiece() == Piece.PieceType.PAWN || move.moveType() == Move.MoveType.CAPTURE)
+        if (move.getTypeOfPiece() == Piece.PieceType.PAWN || move.getMoveType() == Move.MoveType.CAPTURE)
             halfMoveNumber = 0;
         else
             halfMoveNumber += 1;
@@ -138,7 +138,7 @@ public class Game {
 
     // adjusts the castle rights flag in Player if a rook or king moves
     private void setCastleFlag(Move move) {
-        if (move.getTypeOfPiece() == Piece.PieceType.KING || move.moveType() == Move.MoveType.CASTLE) {
+        if (move.getTypeOfPiece() == Piece.PieceType.KING || move.getMoveType() == Move.MoveType.CASTLE) {
             currentPlayer.setCastle(false, false);
         } else if (move.getTypeOfPiece() == Piece.PieceType.ROOK && move.getInitialCol() == 0) { // queenside
             currentPlayer.setCastle(false, true);

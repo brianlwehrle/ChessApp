@@ -28,16 +28,16 @@ public class Converter {
         }
 
         if (move.getTypeOfPiece() == Piece.PieceType.PAWN) {
-            if (move.moveType() == Move.MoveType.EN_PASSANT) {
+            if (move.getMoveType() == Move.MoveType.EN_PASSANT) {
                 return startCol + "x" + finalCol + finalRow;
             }
-            if (move.moveType() == Move.MoveType.CAPTURE) {
+            if (move.getMoveType() == Move.MoveType.CAPTURE) {
                 piece = startCol + "x" + finalCol + finalRow;
             } else { // move
                 piece = startCol+ finalRow;
             }
 
-            switch (move.moveType()) {
+            switch (move.getMoveType()) {
                 case PROMOTION_QUEEN -> piece += "=Q";
                 case PROMOTION_ROOK -> piece += "=R";
                 case PROMOTION_BISHOP -> piece += "=B";
@@ -48,17 +48,17 @@ public class Converter {
         }
 
         // capture
-        if (move.moveType() == Move.MoveType.CAPTURE) {
+        if (move.getMoveType() == Move.MoveType.CAPTURE) {
             return piece + "x" + finalCol + finalRow;
         }
 
         // long castle
-        if (move.moveType() == Move.MoveType.CASTLE && move.getInitialCol() == 0) {
+        if (move.getMoveType() == Move.MoveType.CASTLE && move.getInitialCol() == 0) {
             return "O-O-O";
         }
 
         // short castle
-        if (move.moveType() == Move.MoveType.CASTLE && move.getInitialCol()== 7) {
+        if (move.getMoveType() == Move.MoveType.CASTLE && move.getInitialCol()== 7) {
             return "O-O";
         }
 

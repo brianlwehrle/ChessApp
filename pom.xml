@@ -31,12 +31,6 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.10.1</version>
-		</dependency>
 	</dependencies>
 
 	<build>
@@ -46,6 +40,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 
+				<!-- For building React app with Maven -->
 			<plugin>
 				<groupId>com.github.eirslett</groupId>
 				<artifactId>frontend-maven-plugin</artifactId>

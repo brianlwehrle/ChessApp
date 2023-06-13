@@ -48,7 +48,7 @@ public class Chessboard {
     }
 
     public void move(Move move) {
-        switch (move.moveType()) {
+        switch (move.getMoveType()) {
             case STANDARD -> movePiece(squareAt(move.getInitialRow(), move.getInitialCol()), squareAt(move.getFinalRow(), move.getFinalCol()));
             case CASTLE -> castle(move);
             case EN_PASSANT -> enPassant(move);
@@ -69,7 +69,7 @@ public class Chessboard {
         pieces.remove(end.getPiece());
 
         Piece newPiece;
-        switch (move.moveType()) {
+        switch (move.getMoveType()) {
             case PROMOTION_BISHOP -> newPiece = new Bishop(color);
             case PROMOTION_ROOK -> newPiece = new Rook(color);
             case PROMOTION_KNIGHT -> newPiece = new Knight(color);
