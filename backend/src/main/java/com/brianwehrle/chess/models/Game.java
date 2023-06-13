@@ -29,8 +29,8 @@ public class Game {
 
 
 
-    public Game(Player whitePlayer, Player blackPlayer) {
-        gameId = UUID.randomUUID();
+    public Game(Player whitePlayer, Player blackPlayer, UUID gameId) {
+        this.gameId = gameId;
         this.whitePlayer = whitePlayer;
         this.blackPlayer = blackPlayer;
         whitePlayer.setColor(Color.WHITE);
@@ -39,13 +39,17 @@ public class Game {
         currentPlayer = whitePlayer;
         status = GameStatus.WHITE_TO_MOVE;
         moveHistory = new ArrayList<>();
-        legalMoves = new ArrayList<>();
+        legalMoves = calculateLegalMoves();
         positionCounts = new HashMap<>();
         moveNumber = 1;
         halfMoveNumber = 0;
     }
 
 //TODO load from fen
+
+    public List<Move> getLegalMoves() {
+        return legalMoves;
+    }
 
     // move is a legal move
     // updates the status of the game after the move is made

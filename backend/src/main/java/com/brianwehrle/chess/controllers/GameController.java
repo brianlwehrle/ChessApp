@@ -8,8 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
+@CrossOrigin
 @RestController
-@RequestMapping("/api/v1/game")
+@RequestMapping("/api/v1")
 public class GameController {
 
     @Autowired
@@ -17,19 +20,21 @@ public class GameController {
     private GameService gameService;
 
     @PostMapping("/newGame")
-    public ResponseEntity startNewGame() {
-        gameService.startNewGame();
-        return ResponseEntity.ok("ok");
+    public ResponseEntity<?> startNewGame() {
+        String gameId = gameService.startNewGame().toString();
+        return ResponseEntity.ok(gameId);
     }
 
-    @GetMapping("/getFen")
-    public ResponseEntity<String> getFen() {
-        return new ResponseEntity<>(gameService.getFen(), HttpStatus.OK);
+    @GetMapping("{gameId}/getMoves")
+    public ResponseEntity<?> getMoves(@PathVariable UUID gameId) {
+        String legalMoves = gameService.getLegalMoves(gameId).toString();
+        System.out.println(gameService.getLegalMoves(gameId).toString());
+        return ResponseEntity.ok("Possible moves: " + legalMoves);
     }
 
-    @PostMapping("/makeMove")
-    public ResponseEntity<?> makeMove(@RequestBody String move) {
-        Game.GameStatus tryMove = gameService.makeMove(move);
+    @PostMapping("{gameId}/makeMove")
+    public ResponseEntity<?> makeMove(@RequestBody String move, @PathVariable UUID gameId) {
+        Game.GameStatus tryMove = gameService.makeMove(gameId, move);
 
         if (tryMove == Game.GameStatus.INVALID_MOVE) {
             return ResponseEntity.badRequest().body(tryMove.toString());
@@ -37,7 +42,4 @@ public class GameController {
             return ResponseEntity.ok(tryMove.toString());
         }
     }
-
-
-
 }

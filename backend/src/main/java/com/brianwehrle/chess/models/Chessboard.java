@@ -70,12 +70,11 @@ public class Chessboard {
         pieces.remove(end.getPiece());
 
         Piece newPiece;
-
-        switch (move.getPromotionType()) {
-            case BISHOP -> newPiece = new Bishop(color);
-            case ROOK -> newPiece = new Rook(color);
-            case KNIGHT -> newPiece = new Knight(color);
-            case QUEEN -> newPiece = new Queen(color);
+        switch (move.moveType()) {
+            case PROMOTION_BISHOP -> newPiece = new Bishop(color);
+            case PROMOTION_ROOK -> newPiece = new Rook(color);
+            case PROMOTION_KNIGHT -> newPiece = new Knight(color);
+            case PROMOTION_QUEEN -> newPiece = new Queen(color);
             default -> throw new RuntimeException("No promotion type specified."); //TODO make some exceptions
         }
 
@@ -93,6 +92,28 @@ public class Chessboard {
         Square capturedPawnSquare = squareAt(end.getCol(), end.getRow() - (color == Color.WHITE ? 1 : -1));
         pieces.remove(capturedPawnSquare.getPiece());
         setPiece(capturedPawnSquare, null);
+    }
+
+    private void castle(Move move) {
+        // move the rook
+        Square start = squareAt(move.getInitialRow(), move.getInitialCol());
+        Square end = squareAt(move.getFinalRow(), move.getFinalCol());
+
+        movePiece(start, end);
+
+        // move king
+        // white long
+        if (start == squareAt(0, 0))
+            movePiece(squareAt(0, 4), squareAt(0, 2));
+        // white short
+        if (start == squareAt(0, 7))
+            movePiece(squareAt(0, 4), squareAt(0, 6));
+        // black long
+        if (start == squareAt(7, 0))
+            movePiece(squareAt(7, 4), squareAt(7, 2));
+        // black short
+        if (start == squareAt(7, 7))
+            movePiece(squareAt(7, 4), squareAt(7, 6));
     }
 
     private void movePiece(Square start, Square end) {
@@ -170,6 +191,24 @@ public class Chessboard {
         return res.toString();
     }
 
+    public ArrayList<Piece> getPieces() {
+        return pieces;
+    }
+
+    public ArrayList<Piece> getPieces(Color color) {
+        ArrayList<Piece> colorPieces = new ArrayList<>();
+
+        for (Piece piece : pieces) {
+            if (piece.getColor() == color) colorPieces.add(piece);
+        }
+
+        return colorPieces;
+    }
+
+    public Square[] getBoard() {
+        return board;
+    }
+
     private void setPiece(Square square, Piece piece) {
         if (piece != null) {
             piece.setSquare(square);
@@ -179,30 +218,7 @@ public class Chessboard {
         }
     }
 
-    private void castle(Move move) {
-        // move the rook
-        Square start = squareAt(move.getInitialRow(), move.getInitialCol());
-        Square end = squareAt(move.getFinalRow(), move.getFinalCol());
-
-        movePiece(start, end);
-
-        // move king
-        // white long
-        if (start == squareAt(0, 0))
-            movePiece(squareAt(0, 4), squareAt(0, 2));
-        // white short
-        if (start == squareAt(0, 7))
-            movePiece(squareAt(0, 4), squareAt(0, 6));
-        // black long
-        if (start == squareAt(7, 0))
-            movePiece(squareAt(7, 4), squareAt(7, 2));
-        // black short
-        if (start == squareAt(7, 7))
-            movePiece(squareAt(7, 4), squareAt(7, 6));
-    }
-
     private void initialSetup() {
-        // Pawns
         for (int i = 0; i < 8; i++) {
             setPiece(squareAt(1, i), new Pawn(Color.WHITE));
             setPiece(squareAt(6, i), new Pawn(Color.BLACK));
@@ -228,23 +244,5 @@ public class Chessboard {
         for (int i = 0; i < 8; i++) {
             pieces.add(pieceAt(row, i));
         }
-    }
-
-    public ArrayList<Piece> getPieces() {
-        return pieces;
-    }
-
-    public ArrayList<Piece> getPieces(Color color) {
-        ArrayList<Piece> colorPieces = new ArrayList<>();
-
-        for (Piece piece : pieces) {
-            if (piece.getColor() == color) colorPieces.add(piece);
-        }
-
-        return colorPieces;
-    }
-
-    public Square[] getBoard() {
-        return board;
     }
 }

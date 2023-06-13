@@ -11,6 +11,7 @@ public class Queen extends Piece {
     public Queen(Color color) {
         super(color);
         super.type = PieceType.QUEEN;
+        super.value = 9;
     }
 
     @Override

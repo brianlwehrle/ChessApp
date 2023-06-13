@@ -10,6 +10,7 @@ public class Bishop extends Piece{
     public Bishop(Color color) {
         super(color);
         super.type = PieceType.BISHOP;
+        super.value = 3;
     }
 
     @Override

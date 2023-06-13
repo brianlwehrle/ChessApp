@@ -19,20 +19,25 @@ public class Move {
     private final int initialRow, initialCol, finalRow, finalCol;
     private final MoveType moveType;
     private final Piece.PieceType typeOfPiece;
-    private final Piece.PieceType promotionType;
 
     public Move (Piece.PieceType typeOfPiece, MoveType moveType, Square start, Square end) {
         initialRow = start.getRow();
         initialCol = start.getCol();
         finalRow = end.getRow();
         finalCol = end.getCol();
+
         this.moveType = moveType;
         this.typeOfPiece = typeOfPiece;
-        promotionType = null;
     }
 
+    // to get fancy chess icon string
     public String toString(int code) {
         return Converter.moveToAlgebraic(this, code);
+    }
+
+    @Override
+    public String toString() {
+        return Converter.moveToAlgebraic(this, 0);
     }
 
     public int getInitialRow() {
@@ -56,8 +61,4 @@ public class Move {
     }
 
     public Piece.PieceType getTypeOfPiece() { return typeOfPiece; }
-
-    public Piece.PieceType getPromotionType() {
-        return promotionType;
-    }
 }

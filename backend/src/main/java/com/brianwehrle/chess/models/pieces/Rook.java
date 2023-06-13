@@ -11,6 +11,7 @@ public class Rook extends Piece {
     public Rook(Color color) {
         super(color);
         super.type = PieceType.ROOK;
+        super.value = 5;
     }
     @Override
     public ArrayList<Direction> getDirections() {

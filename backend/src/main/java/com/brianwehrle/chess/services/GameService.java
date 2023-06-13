@@ -1,17 +1,16 @@
 package com.brianwehrle.chess.services;
 
 import com.brianwehrle.chess.models.Game;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.brianwehrle.chess.models.Move;
+import java.util.List;
 
 import java.util.UUID;
 
 public interface GameService {
 
-    public String getFen();
+    public Game.GameStatus makeMove(UUID gameId, String move);
 
-    public Game.GameStatus makeMove(String move);
+    UUID startNewGame();
 
-    public UUID getGameId();
-
-    void startNewGame();
+    List<Move> getLegalMoves(UUID gameId);
 }

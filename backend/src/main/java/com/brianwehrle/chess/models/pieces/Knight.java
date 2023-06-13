@@ -10,6 +10,7 @@ public class Knight extends Piece {
     public Knight(Color color) {
         super(color);
         super.type = PieceType.KNIGHT;
+        super.value = 3;
     }
 
     @Override

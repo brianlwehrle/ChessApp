@@ -20,6 +20,7 @@ public abstract class Piece {
     protected PieceType type;
     protected final Color color;
     protected Square square;
+    protected int value;
 
     public Piece(Color color) {
         this.square = null;

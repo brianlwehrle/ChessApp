@@ -1,5 +1,6 @@
 package com.brianwehrle.chess.utilities;
 
+import com.brianwehrle.chess.models.Color;
 import com.brianwehrle.chess.models.Game;
 import com.brianwehrle.chess.models.Move;
 import com.brianwehrle.chess.models.pieces.Piece;
@@ -18,12 +19,12 @@ public class Converter {
         char finalCol = (char)(move.getFinalCol() + 'a');
 
         switch (move.getTypeOfPiece()) {
-            case KING -> piece = (code == 0 ? "♔" : "K");
-            case QUEEN -> piece = (code == 0 ? "♕" : "Q");
-            case ROOK -> piece = (code == 0 ? "♖" : "R");
-            case BISHOP -> piece = (code == 0 ? "♗" : "B");
-            case KNIGHT -> piece = (code == 0 ? "♘" : "N");
-            case PAWN -> piece += (code == 0 ? "♙" : startCol);
+            case KING -> piece = (code == 1 ? "♔" : "K");
+            case QUEEN -> piece = (code == 1 ? "♕" : "Q");
+            case ROOK -> piece = (code == 1 ? "♖" : "R");
+            case BISHOP -> piece = (code == 1 ? "♗" : "B");
+            case KNIGHT -> piece = (code == 1 ? "♘" : "N");
+            case PAWN -> piece += (code == 1 ? "♙" : startCol);
             default -> piece = "Piece not associated with a type?";
         }
 
@@ -36,13 +37,12 @@ public class Converter {
             } else { // move
                 piece = startCol+ finalRow;
             }
-            if (move.getPromotionType() != null) {
-                switch (move.getPromotionType()) {
-                    case BISHOP -> piece += "=B";
-                    case QUEEN -> piece += "=Q";
-                    case ROOK -> piece += "=R";
-                    case KNIGHT -> piece += "=N";
-                }
+
+            switch (move.moveType()) {
+                case PROMOTION_QUEEN -> piece += "=Q";
+                case PROMOTION_ROOK -> piece += "=R";
+                case PROMOTION_BISHOP -> piece += "=B";
+                case PROMOTION_KNIGHT -> piece += "=N";
             }
 
             return piece;
@@ -70,8 +70,8 @@ public class Converter {
         return null;
     }
 
-    public static String gameToFen(Game game) {
-        return  "";
+    public String gameToFen(Game game) {
+        return game.getFen();
     }
 
     public static ArrayList<Move> pgnToMoveList() {
