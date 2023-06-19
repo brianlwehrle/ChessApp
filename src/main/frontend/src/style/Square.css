@@ -1,0 +1,22 @@
+.square {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: fill;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.light {
+  background-color: #50849c;
+}
+
+.dark {
+  background-color: #f8f8e6;
+}
+
+.square.selected {
+  border: 2px solid rgb(116, 5, 42);
+}
