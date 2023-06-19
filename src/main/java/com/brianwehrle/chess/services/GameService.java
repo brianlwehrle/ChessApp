@@ -1,5 +1,6 @@
 package com.brianwehrle.chess.services;
 
+import com.brianwehrle.chess.dtos.PositionDTO;
 import com.brianwehrle.chess.models.Game;
 import com.brianwehrle.chess.models.Move;
 import java.util.List;
@@ -8,9 +9,9 @@ import java.util.UUID;
 
 public interface GameService {
 
-    public Game.GameStatus makeMove(UUID gameId, String move);
+    Game.GameStatus makeMove(UUID gameId, int moveIndex);
 
     UUID startNewGame();
 
-    List<Move> getLegalMoves(UUID gameId);
+    PositionDTO getPosition(UUID gameId);
 }

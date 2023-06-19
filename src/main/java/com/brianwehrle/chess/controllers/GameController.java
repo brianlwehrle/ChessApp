@@ -1,5 +1,6 @@
 package com.brianwehrle.chess.controllers;
 
+import com.brianwehrle.chess.dtos.PositionDTO;
 import com.brianwehrle.chess.models.Game;
 import com.brianwehrle.chess.models.Move;
 import com.brianwehrle.chess.services.GameService;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 @CrossOrigin
 @RestController
@@ -25,14 +27,15 @@ public class GameController {
         return ResponseEntity.ok(gameId);
     }
 
-    @GetMapping("{gameId}/getMoves")
-    public ResponseEntity<List<Move>> getMoves(@PathVariable UUID gameId) {
-        return ResponseEntity.ok(gameService.getLegalMoves(gameId));
+    @GetMapping("{gameId}/getPosition")
+    public PositionDTO getPosition(@PathVariable UUID gameId) {
+        return gameService.getPosition(gameId);
     }
 
-    @PostMapping("{gameId}/makeMove")
-    public ResponseEntity<?> makeMove(@RequestBody String move, @PathVariable UUID gameId) {
-        Game.GameStatus tryMove = gameService.makeMove(gameId, move);
+    @PostMapping("{gameId}/makeMove/") // TODO see why DTO didn't work here for moveIndex
+    public ResponseEntity<?> makeMove(@RequestBody Map<String, Integer> moveIndex, @PathVariable UUID gameId) {
+
+        Game.GameStatus tryMove = gameService.makeMove(gameId, moveIndex.get("moveIndex"));
 
         if (tryMove == Game.GameStatus.INVALID_MOVE) {
             return ResponseEntity.badRequest().body(tryMove.toString());

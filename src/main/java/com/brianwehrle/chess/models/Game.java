@@ -1,5 +1,6 @@
 package com.brianwehrle.chess.models;
 
+import com.brianwehrle.chess.dtos.PositionDTO;
 import com.brianwehrle.chess.models.pieces.Piece;
 
 import java.util.*;
@@ -47,7 +48,7 @@ public class Game {
 
 //TODO load from fen
 
-    public List<Move> getLegalMoves() {
+    public ArrayList<Move> getLegalMoves() {
         return legalMoves;
     }
 
@@ -70,7 +71,8 @@ public class Game {
         // switch player
         currentPlayer = (currentPlayer == whitePlayer ? blackPlayer : whitePlayer);
 
-        storeFenPosition();
+        // add current position to position counts
+        positionCounts.put(getFenPosition(), positionCounts.getOrDefault(getFenPosition(), 0) + 1);
 
         legalMoves = calculateLegalMoves();
 
@@ -91,6 +93,12 @@ public class Game {
 
     public String getFen() {
         return convertToFen();
+    }
+
+    // only the position portion of the fen
+    public String getFenPosition() {
+        String fen = convertToFen();
+        return (fen.substring(0, fen.indexOf(" "))).concat("/");
     }
 
     private void updateStatus() {
@@ -114,15 +122,9 @@ public class Game {
         return legalMoves;
     }
 
-    private void storeFenPosition() {
-        String fen = convertToFen();
-        String fenPosition = fen.substring(0, fen.indexOf(" "));
-        positionCounts.put(fenPosition, positionCounts.getOrDefault(fenPosition, 0) + 1);
-    }
-
     private boolean isDraw() {
         // 3 move repetition
-        if (positionCounts.get(this.convertToFen()) >= 3) {
+        if (positionCounts.get(getFenPosition()) >= 3) {
             System.out.println("Draw by 3 move repetition!");
             return true;
         }
@@ -332,7 +334,7 @@ public class Game {
     }
 
     private boolean isUnderAttack(Color color, Square square) {
-        // check threats of other color
+        // check threats of opposite color
         return getThreatMap(color == Color.WHITE ? Color.BLACK : Color.WHITE).contains(square);
     }
 
