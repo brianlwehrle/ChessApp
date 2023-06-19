@@ -40,8 +40,13 @@ public class Square {
         return row == that.row && col == that.col;
     }
 
-    public String toString(int code) {
-        return piece.toString(code);
+    @Override
+    public String toString() {
+        if (piece == null) {
+            return (char)(col + 'a') + String.valueOf(row + 1);
+        } else {
+            return piece.toString(1);
+        }
     }
 
     public String getNotation() {

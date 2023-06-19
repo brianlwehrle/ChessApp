@@ -16,15 +16,15 @@ public class Move {
         PROMOTION_QUEEN
     }
 
-    private final int initialRow, initialCol, finalRow, finalCol;
+    private final int startRow, startCol, endRow, endCol;
     private final MoveType moveType;
     private final Piece.PieceType typeOfPiece;
 
     public Move (Piece.PieceType typeOfPiece, MoveType moveType, Square start, Square end) {
-        initialRow = start.getRow();
-        initialCol = start.getCol();
-        finalRow = end.getRow();
-        finalCol = end.getCol();
+        startRow = start.getRow();
+        startCol = start.getCol();
+        endRow = end.getRow();
+        endCol = end.getCol();
 
         this.moveType = moveType;
         this.typeOfPiece = typeOfPiece;
@@ -40,20 +40,20 @@ public class Move {
         return Converter.moveToAlgebraic(this, 0);
     }
 
-    public int getInitialRow() {
-        return initialRow;
+    public int getStartRow() {
+        return startRow;
     }
 
-    public int getInitialCol() {
-        return initialCol;
+    public int getStartCol() {
+        return startCol;
     }
 
-    public int getFinalRow() {
-        return finalRow;
+    public int getEndRow() {
+        return endRow;
     }
 
-    public int getFinalCol() {
-        return finalCol;
+    public int getEndCol() {
+        return endCol;
     }
 
     public MoveType getMoveType() {

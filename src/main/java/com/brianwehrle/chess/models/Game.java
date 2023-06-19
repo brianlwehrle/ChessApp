@@ -1,6 +1,5 @@
 package com.brianwehrle.chess.models;
 
-import com.brianwehrle.chess.dtos.PositionDTO;
 import com.brianwehrle.chess.models.pieces.Piece;
 
 import java.util.*;
@@ -55,7 +54,7 @@ public class Game {
     // move is a legal move
     // updates the status of the game after the move is made
     public void makeMove(Move move) {
-        setCastleFlag(move);
+        setCastleRights(move);
         setEnPassantSquare(move);
 
         board.move(move);
@@ -77,10 +76,6 @@ public class Game {
         legalMoves = calculateLegalMoves();
 
         updateStatus();
-    }
-
-    public boolean isLegalMove(Move move) {
-        return legalMoves.contains(move);
     }
 
     public UUID getGameId() {
@@ -138,21 +133,10 @@ public class Game {
         return false;
     }
 
-    // adjusts the castle rights flag in Player if a rook or king moves
-    private void setCastleFlag(Move move) {
-        if (move.getTypeOfPiece() == Piece.PieceType.KING || move.getMoveType() == Move.MoveType.CASTLE) {
-            currentPlayer.setCastle(false, false);
-        } else if (move.getTypeOfPiece() == Piece.PieceType.ROOK && move.getInitialCol() == 0) { // queenside
-            currentPlayer.setCastle(false, true);
-        } else if (move.getTypeOfPiece() == Piece.PieceType.ROOK && move.getInitialCol() == 7) { // kingside
-            currentPlayer.setCastle(true, false);
-        }
-    }
-
     // sets the square available for En Passant in Player
     private void setEnPassantSquare(Move move) {
-        if (move.getTypeOfPiece() == Piece.PieceType.PAWN && Math.abs(move.getFinalRow() - move.getInitialRow()) == 2) {
-            char col = (char)(move.getInitialCol() + 'a');
+        if (move.getTypeOfPiece() == Piece.PieceType.PAWN && Math.abs(move.getEndRow() - move.getStartRow()) == 2) {
+            char col = (char)(move.getStartCol() + 'a');
             int row = (currentPlayer.getColor() == Color.WHITE ? 3 : 6);
             currentPlayer.setEnPassantSquare(col + String.valueOf(row));
         } else {
@@ -231,14 +215,25 @@ public class Game {
     }
 
     private void addKingMoves(Piece piece, Square start, ArrayList<Move> moves) {
-            for (Direction direction : piece.getDirections()) {
-                Square nextSquare = board.squareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
+        for (Direction direction : piece.getDirections()) {
+            Square nextSquare = board.squareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
 
-                if (nextSquare != null) { // is in bounds
-                    if (nextSquare.isEmpty() || piece.differentColor(nextSquare.getPiece()))
-                        moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare));
-                }
+            if (nextSquare != null) { // is in bounds
+                if (nextSquare.isEmpty() || piece.differentColor(nextSquare.getPiece()))
+                    moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare));
             }
+        }
+
+        //castling
+        if (currentPlayer.canCastle("Long") && castlingUnobstructed("Long")) {
+            Square finalSquare = board.squareAt(start.getRow(), 2);
+            moves.add(new Move(piece.getType(), Move.MoveType.CASTLE, piece.square(), finalSquare));
+        }
+
+        if (currentPlayer.canCastle("Short")  && castlingUnobstructed("Short")) {
+            Square finalSquare = board.squareAt(start.getRow(), 6);
+            moves.add(new Move(piece.getType(), Move.MoveType.CASTLE, piece.square(), finalSquare));
+        }
     }
 
     private void addQRNBMoves(Piece piece, Square start, ArrayList<Move> moves) {
@@ -263,11 +258,6 @@ public class Game {
             }
         }
 
-        //TODO could switch castling to king
-        //castling
-        Square finalSquare = canCastle(piece);
-        if (piece.getType() == Piece.PieceType.ROOK && finalSquare != null)
-            moves.add(new Move(piece.getType(), Move.MoveType.CASTLE, piece.square(), finalSquare));
     }
 
     private void addPawnMoves(Piece piece, Square start, ArrayList<Move> moves) {
@@ -342,45 +332,34 @@ public class Game {
         return isUnderAttack(color, board.getKingLoc(color));
     }
 
-    // returns the final square of the rook if castling is possible, null otherwise
-    private Square canCastle(Piece rook) {
+    // adjusts the castle rights flag in Player if a rook or king moves
+    private void setCastleRights(Move move) {
+        if (move.getTypeOfPiece() == Piece.PieceType.KING) {
+            currentPlayer.setCastle(false, false);
+        } else if (move.getTypeOfPiece() == Piece.PieceType.ROOK) {
+
+            if (move.getStartRow() == 0 || move.getStartRow() == 7) {
+                if (move.getStartCol() == 0 ) { // queenside
+                    currentPlayer.setCastle(false, true);
+                } else if (move.getStartCol() == 7) { //kingside
+                    currentPlayer.setCastle(true, false);
+                }
+            }
+
+        }
+    }
+
+    private boolean castlingUnobstructed(String side) {
         Color color = currentPlayer.getColor();
+        int row = (color == Color.WHITE ? 0 : 7);
+        int col = (side.equals("Long") ? 1 : 4);
 
-        // white long
-        if (rook.square() == board.squareAt(0, 0)) {
-            if (board.squareAt(0, 1).isEmpty() && !isUnderAttack(color, board.squareAt(0, 1)) &&
-                board.squareAt(0, 2).isEmpty() && !isUnderAttack(color, board.squareAt(0, 2)) &&
-                board.squareAt(0, 3).isEmpty() && !isUnderAttack(color, board.squareAt(0, 3))) {
-
-                return board.squareAt(0, 3);
-            }
+        for (int i = 0; i < 3; i++) {
+            if (!board.squareAt(row, col + i).isEmpty() || isUnderAttack(color, board.squareAt(row, col + i)))
+                return false;
         }
-        // white short
-        if (rook.square() == board.squareAt(0, 7)) {
-            if (board.squareAt(0, 6).isEmpty() && !isUnderAttack(color, board.squareAt(0, 6)) &&
-                board.squareAt(0, 5).isEmpty() && !isUnderAttack(color, board.squareAt(0, 5))) {
 
-                return board.squareAt(0, 5);
-            }
-        }
-        // black long
-        if (rook.square() == board.squareAt(7, 0)) {
-            if (board.squareAt(7, 1).isEmpty() && !isUnderAttack(color, board.squareAt(7, 1)) &&
-                board.squareAt(7, 2).isEmpty() && !isUnderAttack(color, board.squareAt(7, 2)) &&
-                board.squareAt(7, 3).isEmpty() && !isUnderAttack(color, board.squareAt(7, 3))) {
-
-                return board.squareAt(7, 3);
-            }
-        }
-        // black short
-        if (rook.square() == board.squareAt(7, 7)) {
-            if (board.squareAt(7, 6).isEmpty() && !isUnderAttack(color, board.squareAt(7, 6)) &&
-                board.squareAt(7, 5).isEmpty() && !isUnderAttack(color, board.squareAt(7, 5))) {
-
-                return board.squareAt(7, 5);
-            }
-        }
-        return null;
+        return true;
     }
 
     private Player otherPlayer() {

@@ -40,7 +40,7 @@ public class Player {
         if (side.equals("Long")) return canCastle[0];
         else if (side.equals("Short")) return canCastle[1];
         else {
-            System.out.println("Invalid calling of canCastle");
+            System.err.println("Invalid calling of canCastle, side: " + side);
             System.exit(1);
         }
         return false;

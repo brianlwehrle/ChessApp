@@ -84,10 +84,10 @@ export default function Board({ legalMoves, executeMove, fenString }) {
     let moveIndex = 0;
     for (const legalMove of legalMoves) {
       if (
-        legalMove.initialRow === Math.abs((startX - 7) % 8) &&
-        legalMove.initialCol === startY &&
-        legalMove.finalRow === Math.abs((endX - 7) % 8) &&
-        legalMove.finalCol === endY
+        legalMove.startRow === Math.abs((startX - 7) % 8) &&
+        legalMove.startCol === startY &&
+        legalMove.endRow === Math.abs((endX - 7) % 8) &&
+        legalMove.endCol === endY
       ) {
         return moveIndex;
       }

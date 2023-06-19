@@ -13,9 +13,9 @@ public class Converter {
 
     public static String moveToAlgebraic(Move move, int code) {
         String piece = "";
-        char startCol = (char)(move.getInitialCol() + 'a');
-        String finalRow = String.valueOf(move.getFinalRow() + 1);
-        char finalCol = (char)(move.getFinalCol() + 'a');
+        char startCol = (char)(move.getStartCol() + 'a');
+        String finalRow = String.valueOf(move.getEndRow() + 1);
+        char finalCol = (char)(move.getEndCol() + 'a');
 
         switch (move.getTypeOfPiece()) {
             case KING -> piece = (code == 1 ? "♔" : "K");
@@ -53,12 +53,12 @@ public class Converter {
         }
 
         // long castle
-        if (move.getMoveType() == Move.MoveType.CASTLE && move.getInitialCol() == 0) {
+        if (move.getMoveType() == Move.MoveType.CASTLE && move.getStartCol() == 0) {
             return "O-O-O";
         }
 
         // short castle
-        if (move.getMoveType() == Move.MoveType.CASTLE && move.getInitialCol()== 7) {
+        if (move.getMoveType() == Move.MoveType.CASTLE && move.getStartCol()== 7) {
             return "O-O";
         }
 

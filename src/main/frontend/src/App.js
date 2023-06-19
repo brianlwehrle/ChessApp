@@ -55,13 +55,17 @@ export default function App() {
 
   return (
     <div id="App">
+      <div id="board-container">
+        <Board
+          legalMoves={legalMoves}
+          executeMove={executeMove}
+          fenString={currentFenPosition}
+        />
+      </div>
       <p style={{ color: "red" }}>Game ID: {gameId}</p>
-      <Board
-        legalMoves={legalMoves}
-        executeMove={executeMove}
-        fenString={currentFenPosition}
-      />
-      <button onClick={newGame}>Start New Game</button>
+      <button style={{ color: "red" }} onClick={newGame}>
+        Start New Game
+      </button>
     </div>
   );
 }

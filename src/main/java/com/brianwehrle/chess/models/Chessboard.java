@@ -49,7 +49,7 @@ public class Chessboard {
 
     public void move(Move move) {
         switch (move.getMoveType()) {
-            case STANDARD -> movePiece(squareAt(move.getInitialRow(), move.getInitialCol()), squareAt(move.getFinalRow(), move.getFinalCol()));
+            case STANDARD -> movePiece(squareAt(move.getStartRow(), move.getStartCol()), squareAt(move.getEndRow(), move.getEndCol()));
             case CASTLE -> castle(move);
             case EN_PASSANT -> enPassant(move);
             case PROMOTION_KNIGHT, PROMOTION_BISHOP, PROMOTION_ROOK, PROMOTION_QUEEN -> promote(move);
@@ -61,8 +61,8 @@ public class Chessboard {
     }
 
     private void promote(Move move) {
-        Square start = squareAt(move.getInitialRow(), move.getInitialCol());
-        Square end = squareAt(move.getFinalRow(), move.getFinalCol());
+        Square start = squareAt(move.getStartRow(), move.getStartCol());
+        Square end = squareAt(move.getEndRow(), move.getEndCol());
         Color color = start.getPiece().getColor();
 
         movePiece(start, end);
@@ -82,37 +82,30 @@ public class Chessboard {
     }
 
     private void enPassant(Move move) {
-        Square start = squareAt(move.getInitialRow(), move.getInitialCol());
-        Square end = squareAt(move.getFinalRow(), move.getFinalCol());
+        Square start = squareAt(move.getStartRow(), move.getStartCol());
+        Square end = squareAt(move.getEndRow(), move.getEndCol());
         Color color = start.getPiece().getColor();
 
         movePiece(start, end);
 
-        Square capturedPawnSquare = squareAt(end.getCol(), end.getRow() - (color == Color.WHITE ? 1 : -1));
+        Square capturedPawnSquare = squareAt(end.getRow() - (color == Color.WHITE ? 1 : -1), end.getCol());
         pieces.remove(capturedPawnSquare.getPiece());
         setPiece(capturedPawnSquare, null);
     }
 
     private void castle(Move move) {
-        // move the rook
-        Square start = squareAt(move.getInitialRow(), move.getInitialCol());
-        Square end = squareAt(move.getFinalRow(), move.getFinalCol());
+        Square start = squareAt(move.getStartRow(), move.getStartCol());
+        Square end = squareAt(move.getEndRow(), move.getEndCol());
 
+        // move the king
         movePiece(start, end);
 
-        // move king
-        // white long
-        if (start == squareAt(0, 0))
-            movePiece(squareAt(0, 4), squareAt(0, 2));
-        // white short
-        if (start == squareAt(0, 7))
-            movePiece(squareAt(0, 4), squareAt(0, 6));
-        // black long
-        if (start == squareAt(7, 0))
-            movePiece(squareAt(7, 4), squareAt(7, 2));
-        // black short
-        if (start == squareAt(7, 7))
-            movePiece(squareAt(7, 4), squareAt(7, 6));
+        // move rook
+        int row = (end.getPiece().getColor() == Color.WHITE ? 0 : 7);
+        int startCol = (end.getCol() == 2 ? 0 : 7);
+        int endCol = (end.getCol() == 2 ? 3 : 5);
+
+        movePiece(squareAt(row, startCol), squareAt(row, endCol));
     }
 
     private void movePiece(Square start, Square end) {
@@ -154,7 +147,7 @@ public class Chessboard {
         StringBuilder res = new StringBuilder();
 
         for (int i = board.length - 1; i >= 0; i--) {
-            line.insert(0, "|" + board[i].toString(0));
+            line.insert(0, "|" + board[i].toString());
 
             if (i % NUM_ROWS == 0) {
                 line.append("|\n");

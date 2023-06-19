@@ -2,14 +2,12 @@ package com.brianwehrle.chess.controllers;
 
 import com.brianwehrle.chess.dtos.PositionDTO;
 import com.brianwehrle.chess.models.Game;
-import com.brianwehrle.chess.models.Move;
 import com.brianwehrle.chess.services.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 @CrossOrigin
