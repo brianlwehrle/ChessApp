@@ -1,4 +1,0 @@
-#App {
-  display: grid;
-  grid-template: 1fr repeat(4, 2fr) 1fr / 1fr repeat(3, 1fr);
-}

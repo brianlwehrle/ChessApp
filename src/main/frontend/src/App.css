@@ -1,0 +1,88 @@
+body {
+  background-color: #312e2b;
+}
+
+#App {
+  display: grid;
+  grid-template: 1fr repeat(4, 2fr) 1fr / 1fr 1fr;
+  width: 80vw;
+  height: 90%;
+  column-gap: 20px;
+  row-gap: 10px;
+  padding: 20px;
+}
+
+#board-container {
+  grid-area: 2 / 1 / span 4 / 1;
+  border-width: 2px;
+  border-style: solid;
+  border-color: rgb(0, 0, 0);
+  box-sizing: border-box;
+}
+
+#board {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100vw;
+  height: 100vw;
+  max-width: 720px;
+  max-height: 720px;
+}
+
+.square {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: fill;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.light {
+  background-color: #5d7f92;
+}
+
+.dark {
+  background-color: #f8f8e6;
+}
+
+.square.selected {
+  border: 2px solid rgb(255, 204, 110);
+}
+
+.button {
+  height: 50px;
+  width: 200px;
+  align-self: center;
+  justify-self: left;
+  min-width: 100px;
+  min-height: 50px;
+}
+
+#new-game-button {
+  grid-area: 3 / 2 / 3 / 2;
+}
+
+#black-player {
+  color: white;
+  grid-area: 1 / 1 / 1 / 1;
+  align-self: last baseline;
+}
+
+#white-player {
+  color: white;
+  grid-area: 6 / 1 / 6 / 1;
+}
+
+#status {
+  grid-area: 4 / 2 / 4 / 2;
+  color: white;
+}
+
+.piece {
+  width: 90%;
+  height: auto;
+}

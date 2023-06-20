@@ -1,10 +1,16 @@
 import React from "react";
+import { useDroppable } from "@dnd-kit/core";
 
-import "../style/Square.css";
+export default function Square({ id, darkSquare, children }) {
+  const { setNodeRef } = useDroppable({
+    id: id,
+  });
 
-export default function Square({ darkSquare, children, isSelected }) {
   const color = darkSquare ? "dark" : "light";
-  const squareClasses = `square ${color} ${isSelected ? "selected" : ""}`;
 
-  return <div className={squareClasses}>{children}</div>;
+  return (
+    <div className={`square ${color} `} ref={setNodeRef}>
+      {children}
+    </div>
+  );
 }

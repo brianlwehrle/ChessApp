@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { DndContext, rectIntersection } from "@dnd-kit/core";
+
 import Square from "./Square";
 import Piece from "./Piece";
-import "../style/Board.css";
+import "../App.css";
 
 function fenToBoard(fenString) {
   let boardState = [];
@@ -70,8 +72,6 @@ export default function Board({ legalMoves, executeMove, fenString }) {
   const [currentBoard, setCurrentBoard] = useState(
     fenToBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/")
   );
-  const [selectedPiece, setSelectedPiece] = useState(null);
-  const [piecePosition, setPiecePosition] = useState({ x: null, y: null });
 
   useEffect(() => {
     // Whenever the `fenString` prop changes, update the `currentBoard` state
@@ -80,14 +80,15 @@ export default function Board({ legalMoves, executeMove, fenString }) {
     }
   }, [fenString]);
 
-  function viableMove(startX, startY, endX, endY) {
+  function viableMove(startRow, startCol, endRow, endCol) {
     let moveIndex = 0;
     for (const legalMove of legalMoves) {
       if (
-        legalMove.startRow === Math.abs((startX - 7) % 8) &&
-        legalMove.startCol === startY &&
-        legalMove.endRow === Math.abs((endX - 7) % 8) &&
-        legalMove.endCol === endY
+        // this is where the coordinate conversion happens
+        legalMove.startRow === Math.abs((startRow - 7) % 8) &&
+        legalMove.startCol === Number(startCol) &&
+        legalMove.endRow === Math.abs((endRow - 7) % 8) &&
+        legalMove.endCol === Number(endCol)
       ) {
         return moveIndex;
       }
@@ -97,43 +98,29 @@ export default function Board({ legalMoves, executeMove, fenString }) {
     return false;
   }
 
-  const handleSquareClick = (x, y) => {
-    if (selectedPiece && (piecePosition.x !== x || piecePosition.y !== y)) {
-      let moveIndex = viableMove(piecePosition.x, piecePosition.y, x, y);
-      if (moveIndex) {
-        // send the move to the server
-        executeMove({ moveIndex });
-      } else {
-        // give bad move feedback
-        console.log("Invalid move");
-      }
-
-      // reset the selected piece and piece position
-      setSelectedPiece(null);
-      setPiecePosition({ x: null, y: null });
+  const handleDrop = (startRow, startCol, endRow, endCol) => {
+    let moveIndex = viableMove(startRow, startCol, endRow, endCol);
+    if (moveIndex) {
+      // send the move to the server
+      executeMove({ moveIndex });
     } else {
-      const piece = currentBoard[x][y];
-
-      if (piece) {
-        setSelectedPiece(piece);
-        setPiecePosition({ x, y });
-      }
+      // give bad move feedback
+      console.log("Invalid move");
     }
   };
 
   const renderSquare = (x, y) => {
-    const darkSquare = (x + y) % 2 === 1;
-    const isSelected = piecePosition.x === x && piecePosition.y === y;
+    const darkSquare = (x + y) % 2 === 0;
     const piece = currentBoard[x][y];
-    const pieceImage = piece ? <Piece piece={piece} /> : null;
+    const pieceImage = piece ? <Piece id={`${x}, ${y}`} piece={piece} /> : null;
 
     return (
       <div
-        key={`${x}-${y}`}
+        key={`${x}, ${y}`}
         style={{ width: "12.5%", height: "12.5%" }}
-        onClick={() => handleSquareClick(x, y)}
+        // onClick={() => handleSquareClick(x, y)}
       >
-        <Square darkSquare={darkSquare} isSelected={isSelected}>
+        <Square id={`${x}, ${y}`} darkSquare={darkSquare}>
           {pieceImage}
         </Square>
       </div>
@@ -141,10 +128,22 @@ export default function Board({ legalMoves, executeMove, fenString }) {
   };
 
   return (
-    <div id="board">
-      {Array.from({ length: 8 }, (_, x) =>
-        Array.from({ length: 8 }, (_, y) => renderSquare(x, y))
-      )}
-    </div>
+    <DndContext
+      collisionDetection={rectIntersection}
+      onDragEnd={(e) => {
+        handleDrop(
+          e.active.id.charAt(0),
+          e.active.id.charAt(3),
+          e.over.id.charAt(0),
+          e.over.id.charAt(3)
+        );
+      }}
+    >
+      <div id="board">
+        {Array.from({ length: 8 }, (_, x) =>
+          Array.from({ length: 8 }, (_, y) => renderSquare(x, y))
+        )}
+      </div>
+    </DndContext>
   );
 }

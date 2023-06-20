@@ -28,7 +28,6 @@ public class Game {
     private int halfMoveNumber;
 
 
-
     public Game(Player whitePlayer, Player blackPlayer, UUID gameId) {
         this.gameId = gameId;
         this.whitePlayer = whitePlayer;
@@ -351,12 +350,15 @@ public class Game {
 
     private boolean castlingUnobstructed(String side) {
         Color color = currentPlayer.getColor();
-        int row = (color == Color.WHITE ? 0 : 7);
-        int col = (side.equals("Long") ? 1 : 4);
+        if (isInCheck(color)) return false;
 
-        for (int i = 0; i < 3; i++) {
-            if (!board.squareAt(row, col + i).isEmpty() || isUnderAttack(color, board.squareAt(row, col + i)))
+        int row = (color == Color.WHITE ? 0 : 7);
+        int col = (side.equals("Long") ? 2 : 5);
+
+        for (int i = 0; i < 2; i++) {
+            if (!board.squareAt(row, col + i).isEmpty() || isUnderAttack(color, board.squareAt(row, col + i))) {
                 return false;
+            }
         }
 
         return true;

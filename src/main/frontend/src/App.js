@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-import "./style/App.css";
+// import "./style/App.css";
 import Board from "./Components/Board";
 import { getNewGame, positionRequest, sendMove } from "./services/GameService";
 
@@ -8,6 +8,7 @@ export default function App() {
   const [gameId, setGameId] = useState("");
   const [legalMoves, setLegalMoves] = useState([]);
   const [currentFenPosition, setCurrentFenPosition] = useState("");
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
     if (gameId) {
@@ -45,6 +46,7 @@ export default function App() {
   const executeMove = (moveIndex) => {
     sendMove(gameId, moveIndex)
       .then((response) => {
+        setStatus(response);
         console.log(`made move with status ${response}`);
         getCurrentPosition(gameId);
       })
@@ -55,6 +57,9 @@ export default function App() {
 
   return (
     <div id="App">
+      <div id="white-player">White Player</div>
+      <div id="black-player">Black Player</div>
+      <div id="status">Current Game Status: {status}</div>
       <div id="board-container">
         <Board
           legalMoves={legalMoves}
@@ -62,9 +67,8 @@ export default function App() {
           fenString={currentFenPosition}
         />
       </div>
-      <p style={{ color: "red" }}>Game ID: {gameId}</p>
-      <button style={{ color: "red" }} onClick={newGame}>
-        Start New Game
+      <button className="button" id="new-game-button" onClick={newGame}>
+        New Game
       </button>
     </div>
   );
