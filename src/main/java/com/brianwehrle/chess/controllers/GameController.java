@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.UUID;
+
 @CrossOrigin
 @RestController
 @RequestMapping("/api/v1")
@@ -30,7 +31,7 @@ public class GameController {
         return gameService.getPosition(gameId);
     }
 
-    @PostMapping("{gameId}/makeMove/") // TODO see why DTO didn't work here for moveIndex
+    @PostMapping("{gameId}/makeMove/") //TODO see why DTO didn't work here for moveIndex
     public ResponseEntity<?> makeMove(@RequestBody Map<String, Integer> moveIndex, @PathVariable UUID gameId) {
 
         Game.GameStatus tryMove = gameService.makeMove(gameId, moveIndex.get("moveIndex"));

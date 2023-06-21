@@ -44,15 +44,43 @@ public class Game {
         halfMoveNumber = 0;
     }
 
+    // for testing
+    public Game(Chessboard testBoard, GameStatus status) {
+        gameId = UUID.randomUUID();
+        whitePlayer = new Player("whiteTest");
+        blackPlayer = new Player("blackTest");
+        whitePlayer.setColor(Color.WHITE);
+        blackPlayer.setColor(Color.BLACK);
+        board = testBoard;
+        currentPlayer = (status == GameStatus.WHITE_TO_MOVE ? whitePlayer : blackPlayer);
+        this.status = status;
+        moveHistory = new ArrayList<>();
+        legalMoves = calculateLegalMoves();
+        positionCounts = new HashMap<>();
+        moveNumber = 1;
+        halfMoveNumber = 0;
+    }
+
 //TODO load from fen
 
     public ArrayList<Move> getLegalMoves() {
         return legalMoves;
     }
 
+    public boolean isLegalMove(Move move) {
+        return legalMoves.contains(move);
+    }
+
     // move is a legal move
     // updates the status of the game after the move is made
-    public void makeMove(Move move) {
+    public GameStatus makeMove(Move move) {
+        if (move == null) return GameStatus.INVALID_MOVE;
+
+        // game is over
+        if (status != GameStatus.BLACK_TO_MOVE && status != GameStatus.WHITE_TO_MOVE) {
+            return status;
+        }
+
         setCastleRights(move);
         setEnPassantSquare(move);
 
@@ -74,7 +102,7 @@ public class Game {
 
         legalMoves = calculateLegalMoves();
 
-        updateStatus();
+        return updateStatus();
     }
 
     public UUID getGameId() {
@@ -86,16 +114,18 @@ public class Game {
     }
 
     public String getFen() {
-        return convertToFen();
+        return convertToFullFen();
     }
 
     // only the position portion of the fen
     public String getFenPosition() {
-        String fen = convertToFen();
-        return (fen.substring(0, fen.indexOf(" "))).concat("/");
+        //TODO remove need for concat
+
+        // "/" adding for easier parsing in client
+        return board.convertPositionToFen().concat("/");
     }
 
-    private void updateStatus() {
+    private GameStatus updateStatus() {
         if (legalMoves.isEmpty()) {
             if (isInCheck(currentPlayer.getColor())) {
                 //checkmate
@@ -108,6 +138,8 @@ public class Game {
         } else {
             status = (currentPlayer.getColor() == Color.WHITE ? GameStatus.WHITE_TO_MOVE : GameStatus.BLACK_TO_MOVE);
         }
+
+        return status;
     }
 
     private ArrayList<Move> calculateLegalMoves() {
@@ -155,7 +187,7 @@ public class Game {
             switch (piece.getType()) {
                 case KING -> {
                     for (Direction direction : piece.getDirections()) {
-                        Square nextSquare = board.squareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
+                        Square nextSquare = board.getSquareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
 
                         if (nextSquare != null) { // is in bounds
                             threatMap.add(nextSquare);
@@ -169,7 +201,7 @@ public class Game {
                     //attacking
                     int dy = piece.getDirections().get(0).dy();
                     for (int dx = -1; dx <= 1; dx += 2) { // just checks both forward diagonals
-                        Square nextSquare = board.squareAt(start.getRow() + dy, start.getCol() + dx);
+                        Square nextSquare = board.getSquareAt(start.getRow() + dy, start.getCol() + dx);
                         if (nextSquare != null) {
                             threatMap.add(nextSquare);
                         }
@@ -179,7 +211,7 @@ public class Game {
                 case QUEEN, ROOK, BISHOP, KNIGHT -> {
                     // for each direction build a path of moves until you hit another piece
                     for (Direction direction : piece.getDirections()) {
-                        Square nextSquare = board.squareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
+                        Square nextSquare = board.getSquareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
 
                         for (int scalar = 2; nextSquare != null; scalar++) {
                             threatMap.add(nextSquare);
@@ -189,7 +221,7 @@ public class Game {
                             // knights have no scalars
                             if (piece.getType() == Piece.PieceType.KNIGHT) break;
 
-                            nextSquare = board.squareAt(start.getRow() + direction.dy() * scalar, start.getCol() + direction.dx() * scalar);
+                            nextSquare = board.getSquareAt(start.getRow() + direction.dy() * scalar, start.getCol() + direction.dx() * scalar);
                         }
                     }
                 }
@@ -215,7 +247,7 @@ public class Game {
 
     private void addKingMoves(Piece piece, Square start, ArrayList<Move> moves) {
         for (Direction direction : piece.getDirections()) {
-            Square nextSquare = board.squareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
+            Square nextSquare = board.getSquareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
 
             if (nextSquare != null) { // is in bounds
                 if (nextSquare.isEmpty() || piece.differentColor(nextSquare.getPiece()))
@@ -225,12 +257,12 @@ public class Game {
 
         //castling
         if (currentPlayer.canCastle("Long") && castlingUnobstructed("Long")) {
-            Square finalSquare = board.squareAt(start.getRow(), 2);
+            Square finalSquare = board.getSquareAt(start.getRow(), 2);
             moves.add(new Move(piece.getType(), Move.MoveType.CASTLE, piece.square(), finalSquare));
         }
 
         if (currentPlayer.canCastle("Short")  && castlingUnobstructed("Short")) {
-            Square finalSquare = board.squareAt(start.getRow(), 6);
+            Square finalSquare = board.getSquareAt(start.getRow(), 6);
             moves.add(new Move(piece.getType(), Move.MoveType.CASTLE, piece.square(), finalSquare));
         }
     }
@@ -238,7 +270,7 @@ public class Game {
     private void addQRNBMoves(Piece piece, Square start, ArrayList<Move> moves) {
         // for each direction build a path of moves until you hit another piece
         for (Direction direction : piece.getDirections()) {
-            Square nextSquare = board.squareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
+            Square nextSquare = board.getSquareAt(start.getRow() + direction.dy(), start.getCol() + direction.dx());
 
             for (int scalar = 2; nextSquare != null; scalar++) {
                 if (nextSquare.isEmpty()) {
@@ -253,7 +285,7 @@ public class Game {
                 // knights have no scalars
                 if (piece.getType() == Piece.PieceType.KNIGHT) break;
 
-                nextSquare = board.squareAt(start.getRow() + direction.dy() * scalar, start.getCol() + direction.dx() * scalar);
+                nextSquare = board.getSquareAt(start.getRow() + direction.dy() * scalar, start.getCol() + direction.dx() * scalar);
             }
         }
 
@@ -263,7 +295,7 @@ public class Game {
         // moving
         for (Direction direction : piece.getDirections()) {
             int dy = direction.dy();
-            Square nextSquare = board.squareAt(start.getRow() + dy, start.getCol());
+            Square nextSquare = board.getSquareAt(start.getRow() + dy, start.getCol());
             if (nextSquare != null && nextSquare.isEmpty()) {
                 if (Math.abs(dy) == 2) {
                     moves.add(new Move(piece.getType(), Move.MoveType.STANDARD, start, nextSquare));
@@ -282,7 +314,7 @@ public class Game {
         //attacking
         int dy = piece.getDirections().get(0).dy();
         for (int dx = -1; dx <= 1; dx += 2) { // just checks both forward diagonals
-            Square nextSquare = board.squareAt(start.getRow() + dy, start.getCol() + dx);
+            Square nextSquare = board.getSquareAt(start.getRow() + dy, start.getCol() + dx);
             if (nextSquare != null) {
                 // en passant
                 if (nextSquare.getNotation().equals(otherPlayer().getEnPassantSquare())) {
@@ -312,8 +344,10 @@ public class Game {
         // cannot move if my king would be in check
         // simulate each move and see if my king would be in check
         Chessboard tempBoard = board;
+        String currentPosition = getFenPosition();
         for (Iterator<Move> iterator = possibleMoves.iterator(); iterator.hasNext(); ) {
-            board = new Chessboard(moveHistory);
+            board = new Chessboard();
+            board.loadPositionFromFen(currentPosition);
             board.move(iterator.next());
 
             if (isInCheck(currentPlayer.getColor()))
@@ -356,7 +390,7 @@ public class Game {
         int col = (side.equals("Long") ? 2 : 5);
 
         for (int i = 0; i < 2; i++) {
-            if (!board.squareAt(row, col + i).isEmpty() || isUnderAttack(color, board.squareAt(row, col + i))) {
+            if (!board.getSquareAt(row, col + i).isEmpty() || isUnderAttack(color, board.getSquareAt(row, col + i))) {
                 return false;
             }
         }
@@ -368,40 +402,8 @@ public class Game {
         return (currentPlayer == whitePlayer ? blackPlayer : whitePlayer);
     }
 
-    private String convertToFen() {
-        StringBuilder fen = new StringBuilder();
-        int emptySquares = 0;
-        String letter = "";
-
-        for (int i = board.getBoard().length - 8; i >= 0; i++) {
-            if (board.getBoard()[i].isEmpty()) {
-                emptySquares++;
-            } else {
-                if (emptySquares > 0) {
-                    fen.append(emptySquares);
-                    emptySquares = 0;
-                }
-                switch (board.getBoard()[i].getPiece().getType()) {
-                    case BISHOP -> letter = "B";
-                    case QUEEN -> letter = "Q";
-                    case ROOK -> letter = "R";
-                    case PAWN -> letter = "P";
-                    case KING -> letter = "K";
-                    case KNIGHT -> letter = "N";
-                }
-                if (board.getBoard()[i].getPiece().getColor() == Color.BLACK)
-                    letter = letter.toLowerCase();
-
-                fen.append(letter);
-            }
-            if ((i + 1) % 8 == 0) {
-                if (emptySquares > 0)
-                    fen.append(emptySquares);
-                fen.append("/");
-                emptySquares = 0;
-                i -= 16;
-            }
-        }
+    private String convertToFullFen() {
+        StringBuilder fen = new StringBuilder(board.convertPositionToFen());
         fen.deleteCharAt(fen.length()-1);
         fen.append(" ");
         fen.append((currentPlayer == whitePlayer ? "w" : "b"));

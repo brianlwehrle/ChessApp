@@ -14,10 +14,6 @@ body {
 
 #board-container {
   grid-area: 2 / 1 / span 4 / 1;
-  border-width: 2px;
-  border-style: solid;
-  border-color: rgb(0, 0, 0);
-  box-sizing: border-box;
 }
 
 #board {
@@ -27,6 +23,10 @@ body {
   height: 100vw;
   max-width: 720px;
   max-height: 720px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: rgb(0, 0, 0);
+  box-sizing: border-box;
 }
 
 .square {

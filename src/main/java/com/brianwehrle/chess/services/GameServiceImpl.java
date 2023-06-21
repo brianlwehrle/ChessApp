@@ -46,11 +46,6 @@ public class GameServiceImpl implements GameService {
             move = null;
         }
 
-        if (move != null) {
-            game.makeMove(move);
-            return game.getStatus();
-        } else {
-            return GameStatus.INVALID_MOVE;
-        }
+        return game.makeMove(move);
     }
 }

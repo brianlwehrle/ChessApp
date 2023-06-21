@@ -100,7 +100,7 @@ export default function Board({ legalMoves, executeMove, fenString }) {
 
   const handleDrop = (startRow, startCol, endRow, endCol) => {
     let moveIndex = viableMove(startRow, startCol, endRow, endCol);
-    if (moveIndex) {
+    if (!isNaN(moveIndex)) {
       // send the move to the server
       executeMove({ moveIndex });
     } else {
