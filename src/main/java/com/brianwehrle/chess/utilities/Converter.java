@@ -17,7 +17,7 @@ public class Converter {
         String finalRow = String.valueOf(move.getEndRow() + 1);
         char finalCol = (char)(move.getEndCol() + 'a');
 
-        switch (move.getTypeOfPiece()) {
+        switch (move.getPieceType()) {
             case KING -> piece = (code == 1 ? "♔" : "K");
             case QUEEN -> piece = (code == 1 ? "♕" : "Q");
             case ROOK -> piece = (code == 1 ? "♖" : "R");
@@ -27,7 +27,7 @@ public class Converter {
             default -> piece = "Piece not associated with a type?";
         }
 
-        if (move.getTypeOfPiece() == Piece.PieceType.PAWN) {
+        if (move.getPieceType() == Piece.PieceType.PAWN) {
             if (move.getMoveType() == Move.MoveType.EN_PASSANT) {
                 return startCol + "x" + finalCol + finalRow;
             }
