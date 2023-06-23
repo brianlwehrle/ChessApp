@@ -11,7 +11,6 @@ public class Chessboard {
     // represents a 2d array
     // rows and cols grow down and right
     // 0, 0 is a1, 0, 7 is a8
-
     private Square[] board;
     private ArrayList<Piece> pieces;
 

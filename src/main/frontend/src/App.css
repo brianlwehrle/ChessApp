@@ -1,44 +1,52 @@
 body {
   background-color: #312e2b;
+  font-size: 24px;
+}
+
+* {
+  color: rgb(235, 235, 235);
 }
 
 #App {
+  align-self: center;
   display: grid;
-  grid-template: 1fr repeat(4, 2fr) 1fr / 1fr 1fr;
-  width: 80vw;
-  height: 90%;
+  grid-template-rows: repeat(6, 1fr);
+  grid-template-columns: 1fr 1fr 1fr;
+  width: 90vw;
+  height: 100vh;
   column-gap: 20px;
   row-gap: 10px;
-  padding: 20px;
-}
-
-#board-container {
-  grid-area: 2 / 1 / span 4 / 1;
+  margin: 20px 20px 20px 20px;
 }
 
 #board {
+  grid-area: 2 / 2 / span 4 / 2;
   display: flex;
   flex-wrap: wrap;
-  width: 100vw;
-  height: 100vw;
+  width: 90vmin;
+  height: 90vmin;
   max-width: 720px;
   max-height: 720px;
   border-width: 2px;
   border-style: solid;
-  border-color: rgb(0, 0, 0);
+  border-color: #0b2027;
+  border-radius: 4px;
   box-sizing: border-box;
+}
+
+#chatbox {
+  grid-area: 2 / 1 / span 4 / 1;
+  border: 1px solid rgb(109, 109, 109);
+  border-radius: 3px;
 }
 
 .square {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: fill;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 .light {
@@ -49,40 +57,51 @@ body {
   background-color: #f8f8e6;
 }
 
-.square.selected {
-  border: 2px solid rgb(255, 204, 110);
+.square:active {
+  background-color: #abbcbc;
 }
 
 .button {
+  background-color: #5488a7;
+  font-size: 1em;
+  font-family: "Open Sans", sans-serif;
+  border: none;
+  border-radius: 4px;
   height: 50px;
   width: 200px;
   align-self: center;
   justify-self: left;
   min-width: 100px;
   min-height: 50px;
+  transition-duration: 0.1s;
+}
+
+.button:hover {
+  background-color: #5e8399;
+}
+
+.button:active {
+  background-color: #344853;
 }
 
 #new-game-button {
-  grid-area: 3 / 2 / 3 / 2;
+  grid-area: 2 / 3 / 2 / 3;
 }
 
 #black-player {
-  color: white;
-  grid-area: 1 / 1 / 1 / 1;
+  grid-area: 1 / 2 / 1 / 2;
   align-self: last baseline;
 }
 
 #white-player {
-  color: white;
-  grid-area: 6 / 1 / 6 / 1;
+  grid-area: 6 / 2 / 6 / 2;
 }
 
 #status {
   grid-area: 4 / 2 / 4 / 2;
-  color: white;
 }
 
 .piece {
-  width: 90%;
+  width: 85px;
   height: auto;
 }

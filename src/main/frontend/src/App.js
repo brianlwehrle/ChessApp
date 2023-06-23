@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 
-// import "./style/App.css";
 import Board from "./Components/Board";
 import { getNewGame, positionRequest, sendMove } from "./services/GameService";
 
@@ -21,6 +20,7 @@ export default function App() {
       .then((response) => {
         const newGameId = response;
         setGameId(newGameId);
+        setStatus("WHITE_TO_MOVE");
         console.log(`Started new game with id ${newGameId}`);
       })
       .catch(() => {
@@ -57,16 +57,15 @@ export default function App() {
 
   return (
     <div id="App">
+      <div id="chatbox">Chat goes here</div>
       <div id="white-player">White Player</div>
       <div id="black-player">Black Player</div>
       <div id="status">Current Game Status: {status}</div>
-      <div id="board-container">
-        <Board
-          legalMoves={legalMoves}
-          executeMove={executeMove}
-          fenString={currentFenPosition}
-        />
-      </div>
+      <Board
+        legalMoves={legalMoves}
+        executeMove={executeMove}
+        fenString={currentFenPosition}
+      />
       <button className="button" id="new-game-button" onClick={newGame}>
         New Game
       </button>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { DndContext, rectIntersection } from "@dnd-kit/core";
 
+import { snapCenterToCursor } from "@dnd-kit/modifiers";
+
 import Square from "./Square";
 import Piece from "./Piece";
 import "../App.css";
@@ -24,40 +26,40 @@ function fenToBoard(fenString) {
     } else {
       switch (character) {
         case "r":
-          newRow.push("rook_b");
+          newRow.push("bR");
           break;
         case "n":
-          newRow.push("knight_b");
+          newRow.push("bN");
           break;
         case "b":
-          newRow.push("bishop_b");
+          newRow.push("bB");
           break;
         case "q":
-          newRow.push("queen_b");
+          newRow.push("bQ");
           break;
         case "k":
-          newRow.push("king_b");
+          newRow.push("bK");
           break;
         case "p":
-          newRow.push("pawn_b");
+          newRow.push("bP");
           break;
         case "R":
-          newRow.push("rook_w");
+          newRow.push("wR");
           break;
         case "N":
-          newRow.push("knight_w");
+          newRow.push("wN");
           break;
         case "B":
-          newRow.push("bishop_w");
+          newRow.push("wB");
           break;
         case "Q":
-          newRow.push("queen_w");
+          newRow.push("wQ");
           break;
         case "K":
-          newRow.push("king_w");
+          newRow.push("wK");
           break;
         case "P":
-          newRow.push("pawn_w");
+          newRow.push("wP");
           break;
         default:
           console.log(`Unrecognized fen String: ${fenString}`);
@@ -83,6 +85,7 @@ export default function Board({ legalMoves, executeMove, fenString }) {
   function viableMove(startRow, startCol, endRow, endCol) {
     let moveIndex = 0;
     for (const legalMove of legalMoves) {
+      const move = legalMove.moveType;
       if (
         // this is where the coordinate conversion happens
         legalMove.startRow === Math.abs((startRow - 7) % 8) &&
@@ -92,20 +95,20 @@ export default function Board({ legalMoves, executeMove, fenString }) {
       ) {
         return moveIndex;
       }
+      console.log(move);
       moveIndex++;
     }
 
-    return false;
+    return -1;
   }
 
   const handleDrop = (startRow, startCol, endRow, endCol) => {
+    if (startRow === endRow && startCol === endCol) return;
     let moveIndex = viableMove(startRow, startCol, endRow, endCol);
-    if (!isNaN(moveIndex)) {
-      // send the move to the server
-      executeMove({ moveIndex });
-    } else {
-      // give bad move feedback
+    if (moveIndex < 0) {
       console.log("Invalid move");
+    } else {
+      executeMove({ moveIndex });
     }
   };
 
@@ -115,11 +118,7 @@ export default function Board({ legalMoves, executeMove, fenString }) {
     const pieceImage = piece ? <Piece id={`${x}, ${y}`} piece={piece} /> : null;
 
     return (
-      <div
-        key={`${x}, ${y}`}
-        style={{ width: "12.5%", height: "12.5%" }}
-        // onClick={() => handleSquareClick(x, y)}
-      >
+      <div key={`${x}, ${y}`} style={{ width: "12.5%", height: "12.5%" }}>
         <Square id={`${x}, ${y}`} darkSquare={darkSquare}>
           {pieceImage}
         </Square>
@@ -129,6 +128,7 @@ export default function Board({ legalMoves, executeMove, fenString }) {
 
   return (
     <DndContext
+      modifiers={[snapCenterToCursor]}
       collisionDetection={rectIntersection}
       onDragEnd={(e) => {
         handleDrop(

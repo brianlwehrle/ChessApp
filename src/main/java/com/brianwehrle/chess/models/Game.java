@@ -94,8 +94,7 @@ public class Game {
         else
             halfMoveNumber += 1;
 
-        // switch player
-        currentPlayer = (currentPlayer == whitePlayer ? blackPlayer : whitePlayer);
+        currentPlayer = otherPlayer();
 
         // add current position to position counts
         positionCounts.put(getFenPosition(), positionCounts.getOrDefault(getFenPosition(), 0) + 1);
@@ -119,10 +118,7 @@ public class Game {
 
     // only the position portion of the fen
     public String getFenPosition() {
-        //TODO remove need for concat
-
-        // "/" adding for easier parsing in client
-        return board.convertPositionToFen().concat("/");
+        return board.convertPositionToFen();
     }
 
     private GameStatus updateStatus() {

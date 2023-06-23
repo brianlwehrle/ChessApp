@@ -12,7 +12,7 @@ export default function Piece({ id, piece }) {
     transform: CSS.Translate.toString(transform),
   };
 
-  const imagePath = `../images/piece_set_1/${piece}.png`;
+  const imagePath = `../images/lichess_alpha/${piece}.svg`;
 
   return (
     <img
