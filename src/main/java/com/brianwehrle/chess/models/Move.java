@@ -16,18 +16,18 @@ public class Move {
         PROMOTION_QUEEN
     }
 
-    private final int startRow, startCol, endRow, endCol;
-    private final MoveType moveType;
-    private final Piece.PieceType typeOfPiece;
+    private int startRow, startCol, endRow, endCol;
+    private MoveType moveType;
+    private Piece.PieceType pieceType;
 
-    public Move (Piece.PieceType typeOfPiece, MoveType moveType, Square start, Square end) {
+    public Move (Piece.PieceType pieceType, MoveType moveType, Square start, Square end) {
         startRow = start.getRow();
         startCol = start.getCol();
         endRow = end.getRow();
         endCol = end.getCol();
 
         this.moveType = moveType;
-        this.typeOfPiece = typeOfPiece;
+        this.pieceType = pieceType;
     }
 
     // to get fancy chess icon string
@@ -60,5 +60,29 @@ public class Move {
         return moveType;
     }
 
-    public Piece.PieceType getTypeOfPiece() { return typeOfPiece; }
+    public Piece.PieceType getPieceType() { return pieceType; }
+
+    public void setStartRow(int startRow) {
+        this.startRow = startRow;
+    }
+
+    public void setStartCol(int startCol) {
+        this.startCol = startCol;
+    }
+
+    public void setEndRow(int endRow) {
+        this.endRow = endRow;
+    }
+
+    public void setEndCol(int endCol) {
+        this.endCol = endCol;
+    }
+
+    public void setMoveType(MoveType moveType) {
+        this.moveType = moveType;
+    }
+
+    public void setPieceType(Piece.PieceType pieceType) {
+        this.pieceType = pieceType;
+    }
 }

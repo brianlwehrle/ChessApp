@@ -67,14 +67,10 @@ public class Game {
         return legalMoves;
     }
 
-    public boolean isLegalMove(Move move) {
-        return legalMoves.contains(move);
-    }
-
-    // move is a legal move
     // updates the status of the game after the move is made
     public GameStatus makeMove(Move move) {
-        if (move == null) return GameStatus.INVALID_MOVE;
+        if (move == null || !legalMoves.contains(move))
+            return GameStatus.INVALID_MOVE;
 
         // game is over
         if (status != GameStatus.BLACK_TO_MOVE && status != GameStatus.WHITE_TO_MOVE) {
@@ -89,7 +85,7 @@ public class Game {
 
         if (currentPlayer == blackPlayer) moveNumber++;
         // track half move number for 50 move rule
-        if (move.getTypeOfPiece() == Piece.PieceType.PAWN || move.getMoveType() == Move.MoveType.CAPTURE)
+        if (move.getPieceType() == Piece.PieceType.PAWN || move.getMoveType() == Move.MoveType.CAPTURE)
             halfMoveNumber = 0;
         else
             halfMoveNumber += 1;
@@ -166,7 +162,7 @@ public class Game {
 
     // sets the square available for En Passant in Player
     private void setEnPassantSquare(Move move) {
-        if (move.getTypeOfPiece() == Piece.PieceType.PAWN && Math.abs(move.getEndRow() - move.getStartRow()) == 2) {
+        if (move.getPieceType() == Piece.PieceType.PAWN && Math.abs(move.getEndRow() - move.getStartRow()) == 2) {
             char col = (char)(move.getStartCol() + 'a');
             int row = (currentPlayer.getColor() == Color.WHITE ? 3 : 6);
             currentPlayer.setEnPassantSquare(col + String.valueOf(row));
@@ -367,9 +363,9 @@ public class Game {
 
     // adjusts the castle rights flag in Player if a rook or king moves
     private void setCastleRights(Move move) {
-        if (move.getTypeOfPiece() == Piece.PieceType.KING) {
+        if (move.getPieceType() == Piece.PieceType.KING) {
             currentPlayer.setCastle(false, false);
-        } else if (move.getTypeOfPiece() == Piece.PieceType.ROOK) {
+        } else if (move.getPieceType() == Piece.PieceType.ROOK) {
 
             if (move.getStartRow() == 0 || move.getStartRow() == 7) {
                 if (move.getStartCol() == 0 ) { // queenside
