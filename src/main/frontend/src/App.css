@@ -98,7 +98,7 @@ body {
 }
 
 #status {
-  grid-area: 4 / 2 / 4 / 2;
+  grid-area: 3 / 3 / 3 / 3;
 }
 
 .piece {

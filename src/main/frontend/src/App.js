@@ -43,8 +43,8 @@ export default function App() {
       });
   };
 
-  const executeMove = (moveIndex) => {
-    sendMove(gameId, moveIndex)
+  const executeMove = (move) => {
+    sendMove(gameId, move)
       .then((response) => {
         setStatus(response);
         console.log(`made move with status ${response}`);

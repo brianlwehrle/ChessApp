@@ -39,6 +39,7 @@ public class GameController {
     @PostMapping("{gameId}/makeMove/")
     public ResponseEntity<?> makeMove(@RequestBody MoveDto moveDTO, @PathVariable UUID gameId) {
         Move move = modelMapper.map(moveDTO, Move.class);
+
         Game.GameStatus tryMove = gameService.makeMove(gameId, move);
 
         if (tryMove == Game.GameStatus.INVALID_MOVE) {

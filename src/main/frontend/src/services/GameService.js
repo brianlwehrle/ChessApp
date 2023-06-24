@@ -24,9 +24,9 @@ export const positionRequest = async (gameId) => {
   }
 };
 
-export const sendMove = async (gameId, moveIndex) => {
+export const sendMove = async (gameId, move) => {
   try {
-    const response = await api.post(`/api/v1/${gameId}/makeMove/`, moveIndex);
+    const response = await api.post(`/api/v1/${gameId}/makeMove/`, move);
     return response.data;
   } catch (error) {
     console.error("Error making api call in sendMove:", error);

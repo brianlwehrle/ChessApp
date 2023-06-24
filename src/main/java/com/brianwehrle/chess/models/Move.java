@@ -3,6 +3,8 @@ package com.brianwehrle.chess.models;
 import com.brianwehrle.chess.models.pieces.Piece;
 import com.brianwehrle.chess.utilities.Converter;
 
+import java.util.Objects;
+
 public class Move {
 
     public enum MoveType {
@@ -19,6 +21,10 @@ public class Move {
     private int startRow, startCol, endRow, endCol;
     private MoveType moveType;
     private Piece.PieceType pieceType;
+
+    public Move() {
+
+    }
 
     public Move (Piece.PieceType pieceType, MoveType moveType, Square start, Square end) {
         startRow = start.getRow();
@@ -85,4 +91,15 @@ public class Move {
     public void setPieceType(Piece.PieceType pieceType) {
         this.pieceType = pieceType;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Move move)) return false;
+        return startRow == move.startRow && startCol == move.startCol && endRow == move.endRow && endCol == move.endCol && moveType == move.moveType && pieceType == move.pieceType;
+    }
+//    @Override
+//    public boolean equals(Object obj) {
+//        return super.equals(obj);
+//    }
 }

@@ -83,9 +83,7 @@ export default function Board({ legalMoves, executeMove, fenString }) {
   }, [fenString]);
 
   function viableMove(startRow, startCol, endRow, endCol) {
-    let moveIndex = 0;
     for (const legalMove of legalMoves) {
-      const move = legalMove.moveType;
       if (
         // this is where the coordinate conversion happens
         legalMove.startRow === Math.abs((startRow - 7) % 8) &&
@@ -93,22 +91,19 @@ export default function Board({ legalMoves, executeMove, fenString }) {
         legalMove.endRow === Math.abs((endRow - 7) % 8) &&
         legalMove.endCol === Number(endCol)
       ) {
-        return moveIndex;
+        return legalMove;
       }
-      console.log(move);
-      moveIndex++;
     }
-
-    return -1;
   }
 
   const handleDrop = (startRow, startCol, endRow, endCol) => {
     if (startRow === endRow && startCol === endCol) return;
-    let moveIndex = viableMove(startRow, startCol, endRow, endCol);
-    if (moveIndex < 0) {
+
+    let move = viableMove(startRow, startCol, endRow, endCol);
+    if (move === null) {
       console.log("Invalid move");
     } else {
-      executeMove({ moveIndex });
+      executeMove(move);
     }
   };
 
@@ -117,6 +112,7 @@ export default function Board({ legalMoves, executeMove, fenString }) {
     const piece = currentBoard[x][y];
     const pieceImage = piece ? <Piece id={`${x}, ${y}`} piece={piece} /> : null;
 
+    //TODO: change id to ${x}${y}
     return (
       <div key={`${x}, ${y}`} style={{ width: "12.5%", height: "12.5%" }}>
         <Square id={`${x}, ${y}`} darkSquare={darkSquare}>

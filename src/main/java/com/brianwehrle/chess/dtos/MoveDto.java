@@ -11,6 +11,8 @@ public class MoveDto {
     private Move.MoveType moveType;
     private Piece.PieceType pieceType;
 
+    public MoveDto() {}
+
     public int getStartRow() {
         return startRow;
     }
