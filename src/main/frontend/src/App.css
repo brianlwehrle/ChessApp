@@ -7,20 +7,26 @@ body {
   color: rgb(235, 235, 235);
 }
 
-#App {
-  align-self: center;
-  display: grid;
-  grid-template-rows: repeat(6, 1fr);
-  grid-template-columns: 1fr 1fr 1fr;
-  width: 90vw;
+#root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 100vh;
+}
+
+#App {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 90%;
+  height: 90%;
+  max-width: 1100px;
+  max-height: 750px;
   column-gap: 20px;
-  row-gap: 10px;
-  margin: 20px 20px 20px 20px;
+  box-sizing: border-box;
 }
 
 #board {
-  grid-area: 2 / 2 / span 4 / 2;
+  grid-area: 2 / 1 / span 4 / 1;
   display: flex;
   flex-wrap: wrap;
   width: 90vmin;
@@ -34,8 +40,14 @@ body {
   box-sizing: border-box;
 }
 
-#chatbox {
-  grid-area: 2 / 1 / span 4 / 1;
+#right-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  width: 30vw;
+  max-width: 320px;
+  grid-area: 2 / 2 / span 4 / 2;
   border: 1px solid rgb(109, 109, 109);
   border-radius: 3px;
 }
@@ -61,7 +73,20 @@ body {
   background-color: #abbcbc;
 }
 
-.button {
+.promotion-popup {
+  position: relative;
+  top: -50%;
+  left: 30%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  border: solid 2px black;
+  box-shadow: 5px 5px 10px black;
+  box-sizing: border-box;
+}
+
+.buttons {
   background-color: #5488a7;
   font-size: 1em;
   font-family: "Open Sans", sans-serif;
@@ -73,35 +98,37 @@ body {
   justify-self: left;
   min-width: 100px;
   min-height: 50px;
+  cursor: pointer;
   transition-duration: 0.1s;
 }
 
 .button:hover {
-  background-color: #5e8399;
+  background-color: #0c98e9;
 }
 
 .button:active {
   background-color: #344853;
 }
 
-#new-game-button {
-  grid-area: 2 / 3 / 2 / 3;
-}
-
 #black-player {
-  grid-area: 1 / 2 / 1 / 2;
+  grid-area: 1 / 1 / 1 / 1;
   align-self: last baseline;
 }
 
 #white-player {
-  grid-area: 6 / 2 / 6 / 2;
-}
-
-#status {
-  grid-area: 3 / 3 / 3 / 3;
+  grid-area: 6 / 1 / 6 / 1;
 }
 
 .piece {
   width: 85px;
   height: auto;
+}
+
+.promotion-img {
+  width: 70px;
+  height: auto;
+}
+
+.promotion-button {
+  border: none;
 }

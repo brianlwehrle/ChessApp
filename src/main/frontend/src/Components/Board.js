@@ -74,6 +74,8 @@ export default function Board({ legalMoves, executeMove, fenString }) {
   const [currentBoard, setCurrentBoard] = useState(
     fenToBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/")
   );
+  const [showPromotionPopup, setShowPromotionPopup] = useState(false);
+  const [selectedMove, setSelectedMove] = useState(null);
 
   useEffect(() => {
     // Whenever the `fenString` prop changes, update the `currentBoard` state
@@ -96,13 +98,38 @@ export default function Board({ legalMoves, executeMove, fenString }) {
     }
   }
 
-  const handleDrop = (startRow, startCol, endRow, endCol) => {
-    if (startRow === endRow && startCol === endCol) return;
+  const handlePromotionSelection = (promotionType) => {
+    // Update the move type of selectedMove
+    const updatedMove = { ...selectedMove, moveType: promotionType };
+    setShowPromotionPopup(false);
 
+    executeMove(updatedMove);
+  };
+
+  const handleDrop = (startRow, startCol, endRow, endCol) => {
     let move = viableMove(startRow, startCol, endRow, endCol);
-    if (move === null) {
+
+    const promotions = [
+      "PROMOTION_KNIGHT",
+      "PROMOTION_BISHOP",
+      "PROMOTION_ROOK",
+      "PROMOTION_QUEEN",
+    ];
+
+    if (!move) {
       console.log("Invalid move");
+    } else if (promotions.includes(move.moveType)) {
+      setShowPromotionPopup(true);
+
+      setSelectedMove(move);
     } else {
+      // Update the board state immediately
+      const updatedBoard = [...currentBoard];
+      const piece = updatedBoard[startRow][startCol];
+      updatedBoard[startRow][startCol] = null;
+      updatedBoard[endRow][endCol] = piece;
+      setCurrentBoard(updatedBoard);
+
       executeMove(move);
     }
   };
@@ -110,12 +137,11 @@ export default function Board({ legalMoves, executeMove, fenString }) {
   const renderSquare = (x, y) => {
     const darkSquare = (x + y) % 2 === 0;
     const piece = currentBoard[x][y];
-    const pieceImage = piece ? <Piece id={`${x}, ${y}`} piece={piece} /> : null;
+    const pieceImage = piece ? <Piece id={`${x}${y}`} piece={piece} /> : null;
 
-    //TODO: change id to ${x}${y}
     return (
-      <div key={`${x}, ${y}`} style={{ width: "12.5%", height: "12.5%" }}>
-        <Square id={`${x}, ${y}`} darkSquare={darkSquare}>
+      <div key={`${x}${y}`} style={{ width: "12.5%", height: "12.5%" }}>
+        <Square id={`${x}${y}`} darkSquare={darkSquare}>
           {pieceImage}
         </Square>
       </div>
@@ -129,9 +155,9 @@ export default function Board({ legalMoves, executeMove, fenString }) {
       onDragEnd={(e) => {
         handleDrop(
           e.active.id.charAt(0),
-          e.active.id.charAt(3),
+          e.active.id.charAt(1),
           e.over.id.charAt(0),
-          e.over.id.charAt(3)
+          e.over.id.charAt(1)
         );
       }}
     >
@@ -139,7 +165,45 @@ export default function Board({ legalMoves, executeMove, fenString }) {
         {Array.from({ length: 8 }, (_, x) =>
           Array.from({ length: 8 }, (_, y) => renderSquare(x, y))
         )}
+        {showPromotionPopup && (
+          <PromotionPopup onSelect={handlePromotionSelection} />
+        )}
       </div>
     </DndContext>
+  );
+}
+
+function PromotionPopup({ onSelect }) {
+  const handlePromotionClick = (promotionType) => {
+    onSelect(promotionType);
+  };
+
+  return (
+    <div className="promotion-popup">
+      <button
+        className="promotion-button"
+        onClick={() => handlePromotionClick("PROMOTION_KNIGHT")}
+      >
+        <img src="../images/lichess_alpha/wN.svg" className="promotion-img" />
+      </button>
+      <button
+        className="promotion-button"
+        onClick={() => handlePromotionClick("PROMOTION_BISHOP")}
+      >
+        <img src="../images/lichess_alpha/wB.svg" className="promotion-img" />
+      </button>
+      <button
+        className="promotion-button"
+        onClick={() => handlePromotionClick("PROMOTION_ROOK")}
+      >
+        <img src="../images/lichess_alpha/wR.svg" className="promotion-img" />
+      </button>
+      <button
+        className="promotion-button"
+        onClick={() => handlePromotionClick("PROMOTION_QUEEN")}
+      >
+        <img src="../images/lichess_alpha/wQ.svg" className="promotion-img" />
+      </button>
+    </div>
   );
 }

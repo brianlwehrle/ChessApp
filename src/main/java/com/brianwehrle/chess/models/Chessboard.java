@@ -181,7 +181,7 @@ public class Chessboard {
     }
 
     public void loadPositionFromFen(String fen) {
-        setupSquares(); // start new board
+        initializeSquares(); // start new board
 
         int row = 7;
         int col = 0;
@@ -224,7 +224,7 @@ public class Chessboard {
         }
     }
 
-    private void setupSquares() {
+    private void initializeSquares() {
         board = new Square[NUM_COLS * NUM_ROWS];
         pieces = new ArrayList<>();
 
@@ -291,7 +291,7 @@ public class Chessboard {
     }
 
     private void initialSetup() {
-        setupSquares();
+        initializeSquares();
 
         for (int i = 0; i < 8; i++) {
             addNewPiece(getSquareAt(1, i), new Pawn(Color.WHITE));

@@ -57,18 +57,19 @@ export default function App() {
 
   return (
     <div id="App">
-      <div id="chatbox">Chat goes here</div>
       <div id="white-player">White Player</div>
       <div id="black-player">Black Player</div>
-      <div id="status">Current Game Status: {status}</div>
+      <div id="right-panel">
+        <button className="buttons" id="new-game-button" onClick={newGame}>
+          New Game
+        </button>
+        <div id="status">{status}</div>
+      </div>
       <Board
         legalMoves={legalMoves}
         executeMove={executeMove}
         fenString={currentFenPosition}
       />
-      <button className="button" id="new-game-button" onClick={newGame}>
-        New Game
-      </button>
     </div>
   );
 }

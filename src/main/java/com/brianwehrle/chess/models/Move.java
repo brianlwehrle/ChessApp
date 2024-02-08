@@ -98,8 +98,4 @@ public class Move {
         if (!(o instanceof Move move)) return false;
         return startRow == move.startRow && startCol == move.startCol && endRow == move.endRow && endCol == move.endCol && moveType == move.moveType && pieceType == move.pieceType;
     }
-//    @Override
-//    public boolean equals(Object obj) {
-//        return super.equals(obj);
-//    }
 }

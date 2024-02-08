@@ -100,26 +100,9 @@ public class Game {
         return updateStatus();
     }
 
-    public UUID getGameId() {
-        return gameId;
-    }
-
-    public GameStatus getStatus() {
-        return status;
-    }
-
-    public String getFen() {
-        return convertToFullFen();
-    }
-
-    // only the position portion of the fen
-    public String getFenPosition() {
-        return board.convertPositionToFen();
-    }
-
     private GameStatus updateStatus() {
         if (legalMoves.isEmpty()) {
-            if (isInCheck(currentPlayer.getColor())) {
+            if (inCheck(currentPlayer.getColor())) {
                 //checkmate
                 status = (currentPlayer.getColor() == Color.WHITE ? GameStatus.VICTORY_BLACK : GameStatus.VICTORY_WHITE);
             } else {
@@ -222,6 +205,8 @@ public class Game {
         return threatMap;
     }
 
+    // "Pseudo-legal moves", i.e. moves that adhere to basic piece movement rules but
+    // not concerned with things like being in check
     private ArrayList<Move> getPossibleMoves(Color color) {
         ArrayList<Move> moves = new ArrayList<>();
 
@@ -342,7 +327,7 @@ public class Game {
             board.loadPositionFromFen(currentPosition);
             board.move(iterator.next());
 
-            if (isInCheck(currentPlayer.getColor()))
+            if (inCheck(currentPlayer.getColor()))
                 iterator.remove();
         }
         board = tempBoard;
@@ -353,7 +338,7 @@ public class Game {
         return getThreatMap(color == Color.WHITE ? Color.BLACK : Color.WHITE).contains(square);
     }
 
-    private boolean isInCheck(Color color) {
+    private boolean inCheck(Color color) {
         return isUnderAttack(color, board.getKingLoc(color));
     }
 
@@ -375,14 +360,13 @@ public class Game {
     }
 
     private boolean castlingUnobstructed(String side) {
-        Color color = currentPlayer.getColor();
-        if (isInCheck(color)) return false;
+        if (inCheck(currentPlayer.getColor())) return false;
 
-        int row = (color == Color.WHITE ? 0 : 7);
+        int row = (currentPlayer.getColor() == Color.WHITE ? 0 : 7);
         int col = (side.equals("Long") ? 2 : 5);
 
         for (int i = 0; i < 2; i++) {
-            if (!board.getSquareAt(row, col + i).isEmpty() || isUnderAttack(color, board.getSquareAt(row, col + i))) {
+            if (!board.getSquareAt(row, col + i).isEmpty() || isUnderAttack(currentPlayer.getColor(), board.getSquareAt(row, col + i))) {
                 return false;
             }
         }
@@ -412,5 +396,22 @@ public class Game {
         fen.append(moveNumber);
 
         return fen.toString();
+    }
+
+    public UUID getGameId() {
+        return gameId;
+    }
+
+    public GameStatus getStatus() {
+        return status;
+    }
+
+    public String getFen() {
+        return convertToFullFen();
+    }
+
+    // only the position portion of the fen
+    public String getFenPosition() {
+        return board.convertPositionToFen();
     }
 }
